@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>DigitalPuppets Corp — Desktop</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+
+    body {
+      width:100vw; height:100vh;
+      overflow:hidden;
+      font-family: 'Tahoma', sans-serif;
+      cursor: default;
+    }
+
+    /* ── DESKTOP ── */
+    #desktop {
+      position:absolute; inset:0;
+      background: #000 url('desktop.png') center center / cover no-repeat;
+      display:flex; flex-direction:column;
+      padding: 10px;
+    }
+
+    /* ── FOLDER ICON ── */
+    .folder-icon {
+      display:inline-flex; flex-direction:column;
+      align-items:center; gap:3px;
+      width:72px; cursor:pointer; padding:4px;
+    }
+    .folder-icon:hover .icon-label { background: #0a246a; color:#fff; }
+    .folder-icon img, .folder-icon .folder-svg { width:48px; height:48px; }
+    .folder-svg {
+      position:relative; display:block;
+    }
+    .icon-label {
+      font-size:11px; color:#fff;
+      text-shadow: 1px 1px 2px #000;
+      text-align:center;
+      padding:1px 3px;
+      border: 1px solid transparent;
+    }
+    .folder-icon:focus .icon-label, .folder-icon.selected .icon-label {
+      background: #0a246a;
+      border-color: #7fa8d8;
+      color:#fff;
+    }
+
+    /* ── TASKBAR ── */
+    #taskbar {
+      position:absolute;
+      bottom:0; left:0; right:0;
+      height:30px;
+      background: linear-gradient(to bottom, #245edc 0%, #1c4ec8 3%, #2060e0 6%, #1850d0 100%);
+      display:flex; align-items:center;
+      border-top: 2px solid #4080ff;
+      z-index:10;
+    }
+
+    /* Start button */
+    #start-btn {
+      height:100%;
+      padding: 0 10px 0 6px;
+      background: linear-gradient(to bottom, #4db04d 0%, #35a035 50%, #2d8a2d 100%);
+      border: none;
+      border-right: 1px solid #1a6a1a;
+      border-radius: 0 12px 12px 0;
+      display:flex; align-items:center; gap:5px;
+      font-family:'Tahoma',sans-serif; font-size:13px; font-weight:bold;
+      color:#fff; text-shadow:1px 1px 2px #000;
+      cursor:pointer; outline:none;
+    }
+    #start-btn:hover { background: linear-gradient(to bottom,#5ac85a 0%,#40b040 50%,#38a038 100%); }
+    .start-logo {
+      width:18px; height:18px;
+      background: radial-gradient(circle at 40% 40%, #ff8800, #cc4400);
+      border-radius:50%;
+      box-shadow:0 0 4px rgba(0,0,0,0.5);
+    }
+
+    /* taskbar clock */
+    #tray {
+      margin-left:auto;
+      padding:0 8px;
+      font-size:11px; color:#fff;
+      text-shadow:1px 1px 1px #000;
+      border-left: 1px solid #1840a8;
+      height:100%; display:flex; align-items:center;
+      background: rgba(0,0,50,0.2);
+    }
+
+    /* quick launch */
+    .ql { display:flex; align-items:center; height:100%; border-right:1px solid #1840a8; padding:0 4px; }
+    .ql-icon { width:20px; height:20px; margin:0 2px; opacity:0.8; cursor:pointer; }
+
+    /* taskbar running apps */
+    #taskbar-apps {
+      flex:1; display:flex; align-items:center; height:100%; padding:0 4px; gap:3px;
+    }
+    .task-btn {
+      height:22px; padding:0 8px;
+      background: linear-gradient(to bottom,#3070e0,#1850c0);
+      border:1px solid #4a80f0;
+      border-radius:3px;
+      color:#fff; font-size:11px; font-family:Tahoma,sans-serif;
+      cursor:pointer;
+      white-space:nowrap; overflow:hidden; max-width:160px;
+      text-overflow:ellipsis;
+    }
+    .task-btn:hover { background:linear-gradient(to bottom,#4080f0,#2060d0); }
+
+    /* ── FINGERPRINT OVERLAY ── */
+    #fp-overlay {
+      display:none;
+      position:fixed; inset:0;
+      background:#000;
+      z-index:100;
+      align-items:center; justify-content:center;
+      flex-direction:column;
+      cursor:pointer;
+    }
+    #fp-overlay.active { display:flex; }
+    #fp-text {
+      font-family:'Tahoma',Arial,sans-serif;
+      font-size:clamp(32px,5vw,72px);
+      font-weight:bold;
+      color:#fff;
+      letter-spacing:0.08em;
+      text-align:center;
+      text-shadow: 0 0 40px rgba(255,255,255,0.3);
+      padding:20px;
+    }
+    .fp-icon {
+      width:120px; height:120px; margin-bottom:30px; opacity:0.6;
+    }
+    .fp-pulse { animation: fp-pulse 2s ease-in-out infinite; }
+    @keyframes fp-pulse {
+      0%,100% { opacity:0.4; transform:scale(1); }
+      50% { opacity:0.9; transform:scale(1.05); }
+    }
+
+    /* ── MEDIA PLAYER ── */
+    #player-overlay {
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.85);
+      z-index:200;
+      align-items:center; justify-content:center;
+    }
+    #player-overlay.active { display:flex; }
+
+    #player-window {
+      width:min(680px,96vw);
+      background:#1c1c1c;
+      border:2px solid #555;
+      box-shadow:0 8px 60px rgba(0,0,0,0.9);
+      border-radius:4px;
+      overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+
+    /* WMP-style titlebar */
+    #player-titlebar {
+      background: linear-gradient(to right, #1a1a2a 0%, #2a3a6a 60%, #1a1a2a 100%);
+      height:28px; display:flex; align-items:center;
+      padding:0 8px; gap:6px;
+      border-bottom:1px solid #333;
+    }
+    .wmp-logo {
+      width:18px; height:18px;
+      border-radius:50%;
+      background: radial-gradient(circle at 35% 35%, #c0e0ff, #0044aa);
+    }
+    #player-title-text {
+      flex:1; font-size:11px; color:#aac0e0;
+      font-family:Tahoma,sans-serif;
+    }
+    .wmp-btn {
+      width:16px; height:14px;
+      background:#2a2a3a; border:1px solid #444;
+      color:#888; font-size:9px; line-height:12px;
+      text-align:center; cursor:pointer;
+    }
+    .wmp-btn:hover { background:#3a3a4a; color:#bbb; }
+
+    /* menu bar */
+    #player-menu {
+      background:#111; border-bottom:1px solid #222;
+      padding:2px 6px;
+      display:flex; gap:14px;
+    }
+    .pm-item {
+      font-size:11px; color:#888; font-family:Tahoma,sans-serif;
+      cursor:default; padding:1px 4px;
+    }
+    .pm-item:hover { background:#2a2a3a; color:#bbb; }
+
+    /* video area */
+    #video-container {
+      background:#000;
+      position:relative;
+      width:100%; aspect-ratio:16/9;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #main-video {
+      width:100%; height:100%; object-fit:contain;
+      display:block;
+    }
+    #video-placeholder {
+      color:#333; font-family:Tahoma,sans-serif; font-size:13px;
+      text-align:center; padding:20px;
+    }
+
+    /* progress / controls */
+    #player-controls {
+      background:#1a1a1a; padding:6px 8px 4px;
+      border-top:1px solid #2a2a2a;
+    }
+    #seek-track {
+      width:100%; height:8px;
+      background:#2a2a2a; border:1px solid #333;
+      border-radius:0; margin-bottom:6px;
+      position:relative; overflow:hidden;
+      cursor:pointer;
+    }
+    #seek-fill {
+      height:100%;
+      background: linear-gradient(to right, #4080c0, #60a0e0);
+      width:0%;
+      transition: width 0.3s;
+    }
+    #ctrl-row {
+      display:flex; align-items:center; gap:6px;
+    }
+    .ctrl-btn {
+      background:#2a2a2a; border:1px solid #3a3a3a;
+      color:#aaa; font-size:11px; font-family:Tahoma,sans-serif;
+      padding:2px 8px; cursor:pointer; border-radius:0;
+      white-space:nowrap;
+    }
+    .ctrl-btn:hover { background:#3a3a3a; color:#ddd; }
+    .ctrl-btn.active { background:#1a4a7a; border-color:#4a8abf; color:#c0e0ff; }
+
+    #track-label {
+      flex:1; font-size:10px; color:#555; font-family:Tahoma,sans-serif;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      margin-left:4px;
+    }
+    #time-display {
+      font-size:10px; color:#558; font-family:'Courier New',monospace;
+    }
+
+    /* volume */
+    #vol-wrap { display:flex; align-items:center; gap:4px; }
+    #vol-wrap span { font-size:10px; color:#555; font-family:Tahoma,sans-serif; }
+    #vol-slider {
+      width:60px; height:4px; appearance:none;
+      background:#2a2a2a; border:1px solid #333; cursor:pointer;
+    }
+    #vol-slider::-webkit-slider-thumb {
+      appearance:none; width:10px; height:14px;
+      background:#4080c0; border:1px solid #224;
+    }
+
+    /* playlist */
+    #playlist-panel {
+      background:#0d0d0d; border-top:1px solid #222;
+      max-height:100px; overflow-y:auto;
+    }
+    .pl-item {
+      font-size:11px; font-family:Tahoma,sans-serif;
+      color:#555; padding:3px 10px; cursor:pointer;
+      border-bottom:1px solid #111;
+      display:flex; gap:8px;
+    }
+    .pl-item:hover { background:#1a1a2a; color:#889; }
+    .pl-item.active { color:#80b0e0; background:#0d1a2a; }
+    .pl-num { color:#333; min-width:20px; }
+
+    /* WMP status bar */
+    #player-status {
+      background:#0d0d0d; border-top:1px solid #181818;
+      padding:2px 8px;
+      font-size:10px; color:#334; font-family:Tahoma,sans-serif;
+      display:flex; justify-content:space-between;
+    }
+
+    #close-player {
+      background:#1a1a1a; border:1px solid #444;
+      color:#888; font-family:Tahoma,sans-serif; font-size:11px;
+      padding:3px 14px; cursor:pointer; align-self:flex-end; margin:6px 8px;
+    }
+    #close-player:hover { background:#2a2a2a; color:#bbb; }
+  </style>
+</head>
+<body>
+
+<!-- DESKTOP -->
+<div id="desktop">
+  <div class="folder-icon" id="folder-btn" onclick="showFingerprint()" tabindex="0">
+    <svg class="folder-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="14" width="44" height="30" rx="2" fill="#f5c842" stroke="#c8972a" stroke-width="1.5"/>
+      <path d="M2 18 Q2 14 6 14 H20 L24 10 H42 Q46 10 46 14 V18 Z" fill="#f5c842" stroke="#c8972a" stroke-width="1.2"/>
+      <rect x="2" y="18" width="44" height="26" rx="1" fill="#f8d84a" stroke="#c8972a" stroke-width="1"/>
+      <!-- shine -->
+      <path d="M6 20 Q24 18 42 22" stroke="#ffe97a" stroke-width="1.5" opacity="0.7"/>
+    </svg>
+    <div class="icon-label">CLASSIFIED</div>
+  </div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+  <button id="start-btn">
+    <div class="start-logo"></div>
+    start
+  </button>
+  <div class="ql">
+    <svg class="ql-icon" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#1e90ff" opacity="0.7"/></svg>
+    <svg class="ql-icon" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="2" fill="#228b22" opacity="0.7"/></svg>
+  </div>
+  <div id="taskbar-apps">
+    <div class="task-btn">Windows Media Player</div>
+  </div>
+  <div id="tray"><span id="task-clock">--:--</span></div>
+</div>
+
+<!-- FINGERPRINT OVERLAY -->
+<div id="fp-overlay" onclick="dismissFingerprint()">
+  <svg class="fp-icon fp-pulse" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" stroke="white" stroke-width="1.5" opacity="0.3"/>
+    <path d="M50 15 C30 15 15 30 15 50 C15 65 22 78 33 86" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M50 20 C32 20 20 34 20 50 C20 62 26 73 36 80" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 26 C35 26 26 38 26 50 C26 61 31 70 40 76" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 32 C38 32 32 42 32 50 C32 59 36 67 43 72" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 38 C42 38 38 45 38 50 C38 57 41 63 47 67" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 44 C46 44 44 48 44 52 C44 56 46 60 50 62" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 15 C70 15 85 30 85 50 C85 65 78 78 67 86" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M50 20 C68 20 80 34 80 50 C80 62 74 73 64 80" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 26 C65 26 74 38 74 50 C74 61 69 70 60 76" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 32 C62 32 68 42 68 50 C68 59 64 67 57 72" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 38 C58 38 62 45 62 50 C62 57 59 63 53 67" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 44 C54 44 56 48 56 52 C56 56 54 60 50 62" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </svg>
+  <div id="fp-text">PLEASE SCAN FINGERPRINT</div>
+  <div style="color:#444;font-size:12px;font-family:Tahoma,sans-serif;margin-top:20px;">click to continue</div>
+</div>
+
+<!-- MEDIA PLAYER -->
+<div id="player-overlay">
+  <div id="player-window">
+    <div id="player-titlebar">
+      <div class="wmp-logo"></div>
+      <div id="player-title-text">Windows Media Player</div>
+      <div class="wmp-btn">_</div>
+      <div class="wmp-btn">□</div>
+      <div class="wmp-btn" onclick="closePlayer()">×</div>
+    </div>
+
+    <div id="player-menu">
+      <span class="pm-item">File</span>
+      <span class="pm-item">View</span>
+      <span class="pm-item">Play</span>
+      <span class="pm-item">Tools</span>
+      <span class="pm-item">Help</span>
+    </div>
+
+    <div id="video-container">
+      <video id="main-video" preload="auto"></video>
+      <div id="video-placeholder">Loading media library...</div>
+    </div>
+
+    <div id="player-controls">
+      <div id="seek-track" onclick="seekClick(event)">
+        <div id="seek-fill"></div>
+      </div>
+      <div id="ctrl-row">
+        <button class="ctrl-btn" id="btn-prev" onclick="prevTrack()">|◄</button>
+        <button class="ctrl-btn active" id="btn-play" onclick="togglePlay()">▶ Play</button>
+        <button class="ctrl-btn" id="btn-stop" onclick="stopTrack()">■ Stop</button>
+        <button class="ctrl-btn" id="btn-next" onclick="nextTrack()">►|</button>
+        <span id="track-label">—</span>
+        <span id="time-display">0:00 / 0:00</span>
+        <div id="vol-wrap">
+          <span>🔊</span>
+          <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVol(this.value)"/>
+        </div>
+      </div>
+    </div>
+
+    <div id="playlist-panel" id="playlist"></div>
+
+    <div id="player-status">
+      <span id="status-text">Ready.</span>
+      <span>Windows Media Player v8.0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CLOCK ──
+  function tickTask() {
+    const n = new Date();
+    const h = n.getHours().toString().padStart(2,'0');
+    const m = n.getMinutes().toString().padStart(2,'0');
+    document.getElementById('task-clock').textContent = h+':'+m;
+  }
+  tickTask(); setInterval(tickTask, 10000);
+
+  // ── FINGERPRINT ──
+  function showFingerprint() {
+    document.getElementById('fp-overlay').classList.add('active');
+  }
+  function dismissFingerprint() {
+    document.getElementById('fp-overlay').classList.remove('active');
+    openPlayer();
+  }
+
+  // ── VIDEO PLAYER ──
+  const VIDEO_DIR = 'Videos/';
+  let playlist = [];
+  let currentIndex = 0;
+  const vid = document.getElementById('main-video');
+  const placeholder = document.getElementById('video-placeholder');
+
+  // We can't list a directory from JS in a static site,
+  // so we probe common video filenames. Any that 404 are skipped.
+  // The user places videos in /Vector/Videos/ named anything.
+  // We'll try to fetch the directory listing via a HEAD request approach,
+  // falling back to a hardcoded probe list.
+  // For GitHub Pages (static), we rely on the user also providing a
+  // videos.json manifest, OR we simply try a range of names.
+
+  async function buildPlaylist() {
+    // Try manifest first (user can create Vector/Videos/manifest.json)
+    try {
+      const r = await fetch(VIDEO_DIR + 'manifest.json');
+      if (r.ok) {
+        const data = await r.json();
+        // expects { "files": ["a.mp4", "b.mp4"] }
+        playlist = data.files.sort().map(f => ({ name: f, src: VIDEO_DIR + f }));
+      }
+    } catch(e) {}
+
+    // If no manifest, try probing common names
+    if (playlist.length === 0) {
+      const candidates = [];
+      // probe up to 20 sequentially + common names
+      for (let i=1; i<=20; i++) {
+        candidates.push(i.toString().padStart(2,'0') + '.mp4');
+        candidates.push(i + '.mp4');
+        candidates.push('video' + i + '.mp4');
+        candidates.push('clip' + i + '.mp4');
+      }
+      candidates.push(...['a.mp4','b.mp4','c.mp4','d.mp4','e.mp4',
+        'intro.mp4','outro.mp4','scene1.mp4','scene2.mp4','scene3.mp4']);
+      const unique = [...new Set(candidates)].sort();
+
+      const checks = await Promise.allSettled(
+        unique.map(f => fetch(VIDEO_DIR + f, { method:'HEAD' }).then(r => r.ok ? f : null))
+      );
+      checks.forEach(c => {
+        if (c.status==='fulfilled' && c.value) {
+          playlist.push({ name: c.value, src: VIDEO_DIR + c.value });
+        }
+      });
+      // deduplicate & sort alphabetically
+      playlist = playlist.filter((v,i,a) => a.findIndex(x=>x.name===v.name)===i)
+                         .sort((a,b) => a.name.localeCompare(b.name));
+    }
+
+    renderPlaylist();
+    if (playlist.length > 0) {
+      placeholder.style.display = 'none';
+      loadTrack(0);
+    } else {
+      placeholder.textContent = 'No media files found in /Vector/Videos/';
+      document.getElementById('status-text').textContent = 'No media found.';
+    }
+  }
+
+  function renderPlaylist() {
+    const panel = document.getElementById('playlist-panel');
+    panel.innerHTML = '';
+    playlist.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'pl-item' + (i===currentIndex?' active':'');
+      div.innerHTML = `<span class="pl-num">${i+1}.</span><span>${item.name}</span>`;
+      div.onclick = () => loadTrack(i);
+      panel.appendChild(div);
+    });
+  }
+
+  function loadTrack(idx) {
+    if (idx < 0 || idx >= playlist.length) return;
+    currentIndex = idx;
+    const item = playlist[idx];
+    vid.src = item.src;
+    vid.load();
+    vid.play().catch(()=>{});
+    document.getElementById('track-label').textContent = item.name;
+    document.getElementById('player-title-text').textContent =
+      'Windows Media Player — ' + item.name;
+    document.getElementById('status-text').textContent = 'Now playing: ' + item.name;
+    document.getElementById('btn-play').textContent = '❚❚ Pause';
+    document.getElementById('btn-play').classList.add('active');
+    renderPlaylist();
+    // update seek
+    updateSeek();
+  }
+
+  function updateSeek() {
+    if (!vid.duration) {
+      document.getElementById('seek-fill').style.width = '0%';
+      document.getElementById('time-display').textContent = '0:00 / 0:00';
+      return;
+    }
+    const pct = (vid.currentTime / vid.duration) * 100;
+    document.getElementById('seek-fill').style.width = pct + '%';
+    document.getElementById('time-display').textContent =
+      fmt(vid.currentTime) + ' / ' + fmt(vid.duration);
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60).toString().padStart(2,'0');
+    return m+':'+sec;
+  }
+
+  vid.addEventListener('timeupdate', updateSeek);
+  vid.addEventListener('ended', () => {
+    if (currentIndex + 1 < playlist.length) {
+      loadTrack(currentIndex + 1);
+    } else {
+      document.getElementById('status-text').textContent = 'End of playlist.';
+      document.getElementById('btn-play').textContent = '▶ Play';
+    }
+  });
+
+  function togglePlay() {
+    if (vid.paused) {
+      vid.play();
+      document.getElementById('btn-play').textContent = '❚❚ Pause';
+    } else {
+      vid.pause();
+      document.getElementById('btn-play').textContent = '▶ Play';
+    }
+  }
+  function stopTrack() {
+    vid.pause();
+    vid.currentTime = 0;
+    document.getElementById('btn-play').textContent = '▶ Play';
+    document.getElementById('status-text').textContent = 'Stopped.';
+  }
+  function prevTrack() { loadTrack(currentIndex - 1); }
+  function nextTrack() { loadTrack(currentIndex + 1); }
+  function setVol(v) { vid.volume = parseFloat(v); }
+  function seekClick(e) {
+    if (!vid.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    vid.currentTime = pct * vid.duration;
+  }
+  function closePlayer() {
+    document.getElementById('player-overlay').classList.remove('active');
+  }
+
+  function openPlayer() {
+    document.getElementById('player-overlay').classList.add('active');
+    buildPlaylist();
+  }
+</script>
+</body>
+</html>
