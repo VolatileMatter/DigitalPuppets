@@ -399,7 +399,7 @@
       const r = await fetch(VIDEO_DIR + 'manifest.json');
       if (r.ok) {
         const data = await r.json();
-        tracks = data.files.sort().map(f => ({ name: f, src: VIDEO_DIR + f }));
+        tracks = data.files.map(f => ({ name: f, src: VIDEO_DIR + f }));
       }
     } catch(e) {}
 
@@ -465,8 +465,8 @@
     if (currentIndex + 1 < tracks.length) {
       loadTrack(currentIndex + 1);
     } else {
+      // Last video — pause on final frame, stay in player
       vid.pause();
-      document.getElementById('player-overlay').classList.remove('active');
       document.getElementById('status-text').textContent = 'Playback complete.';
       document.getElementById('btn-play').textContent = '▶ Play';
     }
