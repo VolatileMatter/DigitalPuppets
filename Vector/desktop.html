@@ -780,7 +780,7 @@
   let lastShakeTime=0;
 
   function drawFrame(ts){
-    if(ts-lastShakeTime>=SHAKE_INTERVAL){
+    if(!vid.paused && ts-lastShakeTime>=SHAKE_INTERVAL){
       lastShakeTime=ts;
       shakeVX+=(Math.random()-0.5)*IMPULSE; shakeVY+=(Math.random()-0.5)*IMPULSE;
       shakeVX*=DAMPING; shakeVY*=DAMPING;
