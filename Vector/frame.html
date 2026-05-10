@@ -24,33 +24,29 @@
     }
     #loading-overlay.active { display:flex; }
 
-    /* Windows flag logo */
+    /* Flag image */
     #xp-flag {
-      width:120px; height:90px;
-      margin-bottom:18px;
-      position:relative;
-    }
-
-    /* Microsoft® wordmark above Windows */
-    #xp-microsoft {
-      font-family:'Times New Roman',serif;
-      font-size:16px; color:#ccc;
-      letter-spacing:0.05em;
-      margin-bottom:2px;
-      align-self:center;
-      /* nudge to align with logo centre */
+      width:140px;
+      margin-bottom:16px;
+      display:block;
     }
 
     #xp-wordmark {
       text-align:center;
       margin-bottom:6px;
+      line-height:1;
+    }
+    #xp-microsoft {
+      font-family:'Times New Roman',serif;
+      font-size:16px; color:#ccc;
+      letter-spacing:0.05em;
+      margin-bottom:3px;
     }
     #xp-windows {
       font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
       font-size:52px; color:#fff;
       font-weight:400;
       letter-spacing:-0.01em;
-      line-height:1;
       display:inline;
     }
     #xp-super {
@@ -62,13 +58,13 @@
       font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
       font-size:28px; color:#ccc; font-weight:400;
       letter-spacing:0.02em;
-      margin-top:2px;
+      margin-top:4px;
     }
 
-    /* progress bar — XP boot style: small rounded track, moving blocks */
+    /* progress bar */
     #xp-progress-wrap {
-      margin-top:48px;
-      width:200px;
+      margin-top:52px;
+      width:216px;
     }
     #xp-bar-track {
       width:100%; height:14px;
@@ -78,35 +74,37 @@
       overflow:hidden;
       position:relative;
     }
-    /* The three animated blocks */
+
+    /* Pills: each starts fully off the left edge, marches right, exits off right */
     .xp-block {
       position:absolute;
-      top:2px; height:10px; width:18px;
+      top:2px; height:10px; width:20px;
       background:linear-gradient(to bottom,#6ab0f8,#1860d0);
       border-radius:4px;
-      animation: xp-march 1.2s linear infinite;
+      /* animation-fill-mode:backwards keeps the pill at its 0% keyframe position
+         during the delay, so it stays off-screen rather than bunching at left:0 */
+      animation: xp-march 1.5s linear infinite;
+      animation-fill-mode: backwards;
     }
-    .xp-block:nth-child(1) { animation-delay:0s; }
-    .xp-block:nth-child(2) { animation-delay:0.4s; }
-    .xp-block:nth-child(3) { animation-delay:0.8s; }
+    .xp-block:nth-child(1) { animation-delay: 0s;   }
+    .xp-block:nth-child(2) { animation-delay: 0.5s; }
+    .xp-block:nth-child(3) { animation-delay: 1.0s; }
 
     @keyframes xp-march {
-      0%   { left: -22px; opacity:0; }
-      5%   { opacity:1; }
-      90%  { opacity:1; }
-      100% { left: calc(100% + 4px); opacity:0; }
+      0%   { left: -24px; }
+      100% { left: calc(100% + 24px); }
     }
 
     /* copyright footer */
     #xp-copyright {
       position:fixed; bottom:20px; left:20px;
-      font-family:'Tahoma',sans-serif; font-size:11px; color:#666;
+      font-family:'Tahoma',sans-serif; font-size:11px; color:#555;
       line-height:1.6;
     }
     #xp-ms-logo {
       position:fixed; bottom:16px; right:20px;
       font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
-      font-size:20px; color:#aaa; letter-spacing:0.02em;
+      font-size:20px; color:#888; letter-spacing:0.02em;
       font-style:italic;
     }
   </style>
@@ -116,21 +114,7 @@
   <iframe id="shell-frame" src="login.html" allowfullscreen></iframe>
 
   <div id="loading-overlay">
-
-    <!-- Windows flag SVG -->
-    <svg id="xp-flag" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- four quadrants with wave/wave shape -->
-      <!-- red (top-left) -->
-      <path d="M4 8 C20 4 36 2 56 10 C56 30 56 44 56 44 C36 40 20 42 4 46 Z" fill="#e03010"/>
-      <!-- green (top-right) -->
-      <path d="M60 8 C76 2 96 2 116 6 C116 6 116 42 116 44 C96 38 76 38 60 44 Z" fill="#80c020"/>
-      <!-- blue (bottom-left) -->
-      <path d="M4 50 C20 44 36 44 56 48 C56 60 56 80 56 82 C36 84 18 82 4 80 Z" fill="#1060c8"/>
-      <!-- yellow (bottom-right) -->
-      <path d="M60 48 C76 40 96 38 116 46 C116 64 116 80 116 82 C96 84 76 84 60 82 Z" fill="#f8c000"/>
-      <!-- subtle shine -->
-      <ellipse cx="60" cy="44" rx="56" ry="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-    </svg>
+    <img id="xp-flag" src="windowsflag.png" alt=""/>
 
     <div id="xp-wordmark">
       <div id="xp-microsoft">Microsoft<sup style="font-size:10px">®</sup></div>
@@ -164,18 +148,23 @@
   });
 
   function startLoading() {
+    // 1. Show the boot screen immediately
     overlay.classList.add('active');
 
-    // Load desktop in background immediately
-    frame.src = 'desktop.html';
-
-    // Show for exactly 3 seconds, then hide
+    // 2. After 3 seconds, swap the iframe src to desktop
+    //    Doing it AFTER the overlay is up means the iframe load
+    //    happens while we're covering it — fullscreen stays on
+    //    the parent document throughout.
     setTimeout(() => {
-      overlay.classList.remove('active');
+      frame.src = 'desktop.html';
+      // Hide overlay once desktop has loaded, or after a max of 2s
+      const hideOverlay = () => overlay.classList.remove('active');
+      frame.addEventListener('load', hideOverlay, { once: true });
+      setTimeout(hideOverlay, 2000);
     }, 3000);
   }
 
-  // F key fullscreen
+  // F key fullscreen — always on the parent doc so it's never lost
   document.addEventListener('keydown', e => {
     if (e.key !== 'f' && e.key !== 'F') return;
     if (!document.fullscreenElement) {
