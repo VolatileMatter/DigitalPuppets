@@ -7,88 +7,107 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width:100%; height:100%; overflow:hidden; background:#000; }
 
-    /* iframe fills everything */
     #shell-frame {
       width:100%; height:100%;
       border:none; display:block;
     }
 
-    /* ── XP LOADING OVERLAY ── */
+    /* ── WINDOWS XP BOOT SCREEN ── */
     #loading-overlay {
       display:none;
       position:fixed; inset:0;
-      background:rgba(0,0,0,0.55);
+      background:#000;
       z-index:9999;
-      align-items:center; justify-content:center;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
     }
     #loading-overlay.active { display:flex; }
 
-    #loading-dialog {
-      width:380px;
-      background:#ece9d8;
-      border:2px solid #0a246a;
-      box-shadow:4px 4px 10px rgba(0,0,0,0.7);
-      font-family:'Tahoma',sans-serif;
+    /* Windows flag logo */
+    #xp-flag {
+      width:120px; height:90px;
+      margin-bottom:18px;
+      position:relative;
     }
 
-    /* XP titlebar */
-    #ld-titlebar {
-      background:linear-gradient(to bottom,#2462c8 0%,#1941a5 100%);
-      padding:4px 6px;
-      display:flex; align-items:center; gap:5px;
-    }
-    #ld-titlebar svg { flex-shrink:0; }
-    #ld-titlebar-text {
-      flex:1; font-size:12px; font-weight:bold; color:#fff;
-      text-shadow:1px 1px 2px rgba(0,0,0,0.5);
-    }
-    .xp-chrome-btn {
-      width:21px; height:21px;
-      background:linear-gradient(to bottom,#f0c060,#d09020);
-      border:1px solid #806010; border-radius:3px;
-      font-size:11px; font-weight:bold; color:#000;
-      display:flex; align-items:center; justify-content:center;
+    /* Microsoft® wordmark above Windows */
+    #xp-microsoft {
+      font-family:'Times New Roman',serif;
+      font-size:16px; color:#ccc;
+      letter-spacing:0.05em;
+      margin-bottom:2px;
+      align-self:center;
+      /* nudge to align with logo centre */
     }
 
-    /* body */
-    #ld-body {
-      padding:18px 20px 16px;
-      display:flex; flex-direction:column; gap:12px;
+    #xp-wordmark {
+      text-align:center;
+      margin-bottom:6px;
     }
-    #ld-msg {
-      font-size:13px; color:#000; line-height:1.5;
+    #xp-windows {
+      font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
+      font-size:52px; color:#fff;
+      font-weight:400;
+      letter-spacing:-0.01em;
+      line-height:1;
+      display:inline;
     }
-    #ld-sub {
-      font-size:11px; color:#444;
+    #xp-super {
+      font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
+      font-size:26px; color:#f80; font-weight:400;
+      vertical-align:super; line-height:0;
     }
-
-    /* progress bar — XP chunky style */
-    #ld-progress-track {
-      width:100%; height:18px;
-      background:#fff;
-      border:2px inset #aaa;
-      position:relative; overflow:hidden;
-    }
-    #ld-progress-fill {
-      height:100%;
-      background:linear-gradient(to bottom,#3070d8 0%,#1850b8 50%,#3070d8 100%);
-      width:0%;
-      transition:width 0.25s ease;
-      /* XP segmented look */
-      background-image:repeating-linear-gradient(
-        to right,
-        rgba(255,255,255,0.15) 0px,
-        rgba(255,255,255,0.15) 10px,
-        transparent 10px,
-        transparent 14px
-      ),
-      linear-gradient(to bottom,#4a90e8,#1850b8);
+    #xp-edition {
+      font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
+      font-size:28px; color:#ccc; font-weight:400;
+      letter-spacing:0.02em;
+      margin-top:2px;
     }
 
-    #ld-status {
-      font-size:11px; color:#333;
-      font-family:'Courier New',monospace;
-      letter-spacing:0.04em;
+    /* progress bar — XP boot style: small rounded track, moving blocks */
+    #xp-progress-wrap {
+      margin-top:48px;
+      width:200px;
+    }
+    #xp-bar-track {
+      width:100%; height:14px;
+      border:1px solid #555;
+      border-radius:7px;
+      background:#111;
+      overflow:hidden;
+      position:relative;
+    }
+    /* The three animated blocks */
+    .xp-block {
+      position:absolute;
+      top:2px; height:10px; width:18px;
+      background:linear-gradient(to bottom,#6ab0f8,#1860d0);
+      border-radius:4px;
+      animation: xp-march 1.2s linear infinite;
+    }
+    .xp-block:nth-child(1) { animation-delay:0s; }
+    .xp-block:nth-child(2) { animation-delay:0.4s; }
+    .xp-block:nth-child(3) { animation-delay:0.8s; }
+
+    @keyframes xp-march {
+      0%   { left: -22px; opacity:0; }
+      5%   { opacity:1; }
+      90%  { opacity:1; }
+      100% { left: calc(100% + 4px); opacity:0; }
+    }
+
+    /* copyright footer */
+    #xp-copyright {
+      position:fixed; bottom:20px; left:20px;
+      font-family:'Tahoma',sans-serif; font-size:11px; color:#666;
+      line-height:1.6;
+    }
+    #xp-ms-logo {
+      position:fixed; bottom:16px; right:20px;
+      font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;
+      font-size:20px; color:#aaa; letter-spacing:0.02em;
+      font-style:italic;
     }
   </style>
 </head>
@@ -96,86 +115,67 @@
 
   <iframe id="shell-frame" src="login.html" allowfullscreen></iframe>
 
-  <!-- XP-style loading dialog, sits above the iframe -->
   <div id="loading-overlay">
-    <div id="loading-dialog">
-      <div id="ld-titlebar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <rect x="1" y="1" width="14" height="14" rx="2" fill="#1060c0"/>
-          <text x="4" y="12" font-size="10" font-family="Arial" font-weight="bold" fill="#fff">J</text>
-        </svg>
-        <div id="ld-titlebar-text">JaxCorp — Authenticating</div>
-        <div class="xp-chrome-btn">–</div>
+
+    <!-- Windows flag SVG -->
+    <svg id="xp-flag" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- four quadrants with wave/wave shape -->
+      <!-- red (top-left) -->
+      <path d="M4 8 C20 4 36 2 56 10 C56 30 56 44 56 44 C36 40 20 42 4 46 Z" fill="#e03010"/>
+      <!-- green (top-right) -->
+      <path d="M60 8 C76 2 96 2 116 6 C116 6 116 42 116 44 C96 38 76 38 60 44 Z" fill="#80c020"/>
+      <!-- blue (bottom-left) -->
+      <path d="M4 50 C20 44 36 44 56 48 C56 60 56 80 56 82 C36 84 18 82 4 80 Z" fill="#1060c8"/>
+      <!-- yellow (bottom-right) -->
+      <path d="M60 48 C76 40 96 38 116 46 C116 64 116 80 116 82 C96 84 76 84 60 82 Z" fill="#f8c000"/>
+      <!-- subtle shine -->
+      <ellipse cx="60" cy="44" rx="56" ry="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    </svg>
+
+    <div id="xp-wordmark">
+      <div id="xp-microsoft">Microsoft<sup style="font-size:10px">®</sup></div>
+      <div>
+        <span id="xp-windows">Windows</span><span id="xp-super">xp</span>
       </div>
-      <div id="ld-body">
-        <div id="ld-msg">
-          <strong>Authentication successful.</strong><br/>
-          Loading secure desktop environment. Please wait.
-        </div>
-        <div id="ld-progress-track">
-          <div id="ld-progress-fill"></div>
-        </div>
-        <div id="ld-status">Initializing session...</div>
-        <div id="ld-sub">JaxCorp Division 7 &nbsp;|&nbsp; Legacy Environment 2025 &nbsp;|&nbsp; 2025-12-31</div>
+      <div id="xp-edition">Enterprise</div>
+    </div>
+
+    <div id="xp-progress-wrap">
+      <div id="xp-bar-track">
+        <div class="xp-block"></div>
+        <div class="xp-block"></div>
+        <div class="xp-block"></div>
       </div>
     </div>
+
+    <div id="xp-copyright">
+      Copyright &copy; 1985-2001<br/>Microsoft Corporation
+    </div>
+    <div id="xp-ms-logo"><em>Microsoft</em></div>
   </div>
 
 </body>
 <script>
   const frame   = document.getElementById('shell-frame');
   const overlay = document.getElementById('loading-overlay');
-  const fill    = document.getElementById('ld-progress-fill');
-  const status  = document.getElementById('ld-status');
 
-  const STATUS_MSGS = [
-    'Verifying credentials...',
-    'Loading user profile...',
-    'Mounting secure drives...',
-    'Starting LIMS services...',
-    'Initializing biotrack modules...',
-    'Applying security policy...',
-    'Loading desktop environment...',
-    'Ready.',
-  ];
-
-  // Listen for the login success message from the iframe
   window.addEventListener('message', e => {
-    if (e.data === 'jax-login-success') {
-      startLoading();
-    }
+    if (e.data === 'jax-login-success') startLoading();
   });
 
   function startLoading() {
     overlay.classList.add('active');
 
-    // Animate the progress bar through the status messages
-    let step = 0;
-    const total = STATUS_MSGS.length;
-    const interval = setInterval(() => {
-      step++;
-      const pct = Math.round((step / total) * 100);
-      fill.style.width = pct + '%';
-      status.textContent = STATUS_MSGS[Math.min(step, total - 1)];
+    // Load desktop in background immediately
+    frame.src = 'desktop.html';
 
-      if (step >= total) {
-        clearInterval(interval);
-        // Brief pause on "Ready." then swap to desktop
-        setTimeout(() => {
-          frame.src = 'desktop.html';
-          // Hide overlay once desktop iframe has loaded
-          frame.onload = () => {
-            overlay.classList.remove('active');
-            frame.onload = null;
-          };
-          // Fallback: hide after 3s regardless
-          setTimeout(() => overlay.classList.remove('active'), 3000);
-        }, 400);
-      }
-    }, 280);
+    // Show for exactly 3 seconds, then hide
+    setTimeout(() => {
+      overlay.classList.remove('active');
+    }, 3000);
   }
 
-  // F key fullscreen (frame.html is the persistent document)
+  // F key fullscreen
   document.addEventListener('keydown', e => {
     if (e.key !== 'f' && e.key !== 'F') return;
     if (!document.fullscreenElement) {
