@@ -15,35 +15,38 @@
 
     /* ── DESKTOP ── */
     #desktop {
-      position:absolute; inset:0;
+      position:absolute; inset:0 0 30px 0;
       background: #000 url('desktop.png') center center / cover no-repeat;
-      display:flex; flex-direction:column;
-      padding: 10px;
+      padding: 10px 10px 10px 10px;
+      /* icon grid: two columns of icons down the left */
+      display: grid;
+      grid-template-columns: 84px 84px;
+      grid-auto-rows: 84px;
+      align-content: start;
+      gap: 4px;
     }
 
-    /* ── FOLDER ICON ── */
-    .folder-icon {
-      display:inline-flex; flex-direction:column;
-      align-items:center; gap:3px;
-      width:80px; cursor:pointer; padding:4px;
+    /* ── DESKTOP ICONS ── */
+    .desk-icon {
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-start;
+      gap:3px; width:80px; cursor:pointer; padding:4px 2px;
+      border:1px solid transparent; border-radius:2px;
     }
-    .folder-icon:hover .icon-label { background:#0a246a; color:#fff; }
-    .folder-svg { width:48px; height:48px; display:block; }
-    .icon-label {
-      font-size:11px; color:#fff;
-      text-shadow: 1px 1px 2px #000;
-      text-align:center; padding:1px 4px;
-      border:1px solid transparent; white-space:nowrap;
+    .desk-icon:hover { background:rgba(10,36,106,0.45); border-color:rgba(120,160,220,0.5); }
+    .desk-icon svg { width:40px; height:40px; display:block; flex-shrink:0; }
+    .desk-icon .lbl {
+      font-size:11px; color:#fff; line-height:1.2;
+      text-shadow: 1px 1px 2px #000, 0 0 4px #000;
+      text-align:center; word-break:break-word; max-width:78px;
     }
 
     /* ── TASKBAR ── */
     #taskbar {
-      position:absolute; bottom:0; left:0; right:0;
-      height:30px;
+      position:absolute; bottom:0; left:0; right:0; height:30px;
       background: linear-gradient(to bottom, #245edc 0%, #1c4ec8 3%, #2060e0 6%, #1850d0 100%);
       display:flex; align-items:center;
-      border-top: 2px solid #4080ff;
-      z-index:10;
+      border-top: 2px solid #4080ff; z-index:10;
     }
     #start-btn {
       height:100%; padding: 0 10px 0 6px;
@@ -77,25 +80,102 @@
       background:rgba(0,0,50,0.2);
     }
 
-    /* ── FINGERPRINT OVERLAY ── */
+    /* ── FINGERPRINT / ERROR DIALOG ── */
     #fp-overlay {
-      display:none; position:fixed; inset:0; background:#000;
+      display:none; position:fixed; inset:0;
+      background: rgba(0,0,0,0.4);
       z-index:100; align-items:center; justify-content:center;
-      flex-direction:column; cursor:pointer;
+      cursor:default;
     }
     #fp-overlay.active { display:flex; }
-    #fp-text {
-      font-family:'Tahoma',Arial,sans-serif;
-      font-size:clamp(32px,5vw,72px); font-weight:bold;
-      color:#fff; letter-spacing:0.08em; text-align:center;
-      text-shadow: 0 0 40px rgba(255,255,255,0.3); padding:20px;
+
+    /* Classic XP-style error window */
+    #fp-dialog {
+      width: min(580px, 90vw);
+      background: #ece9d8;
+      border: 2px solid #0a246a;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+      font-family: 'Tahoma', sans-serif;
+      cursor: default;
     }
-    .fp-icon { width:120px; height:120px; margin-bottom:30px; }
+    #fp-titlebar {
+      background: linear-gradient(to bottom, #2462c8 0%, #1941a5 100%);
+      padding: 4px 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    #fp-titlebar-icon { width:16px; height:16px; }
+    #fp-titlebar-text {
+      flex:1; font-size:12px; font-weight:bold; color:#fff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .xp-btn-chrome {
+      width:21px; height:21px;
+      background: linear-gradient(to bottom, #f0c060 0%, #d09020 100%);
+      border: 1px solid #806010;
+      border-radius: 3px;
+      font-size:11px; font-weight:bold; color:#000;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+    }
+    .xp-btn-chrome:hover { background: linear-gradient(to bottom,#ffdd88,#e0a030); }
+
+    #fp-body {
+      padding: 18px 20px 14px 20px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    #fp-error-icon {
+      flex-shrink:0; width:52px; height:52px;
+    }
+    #fp-content { flex:1; }
+    #fp-msg-text {
+      font-size:13px; color:#000; line-height:1.5; margin-bottom:16px;
+    }
+
+    /* Fingerprint graphic inside dialog */
+    #fp-scan-area {
+      background: #000; border: 2px inset #888;
+      width:100%; height:180px;
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:14px; position:relative; overflow:hidden;
+      cursor:pointer;
+    }
+    #fp-scan-area:hover { border-color:#2462c8; }
+    .fp-svg { width:120px; height:120px; }
     .fp-pulse { animation: fp-pulse 2s ease-in-out infinite; }
     @keyframes fp-pulse {
       0%,100% { opacity:0.4; transform:scale(1); }
-      50%      { opacity:0.9; transform:scale(1.05); }
+      50%      { opacity:1;   transform:scale(1.06); }
     }
+    /* scanning line */
+    #fp-scanline {
+      position:absolute; left:0; right:0; height:2px;
+      background: linear-gradient(to right, transparent, #00ff88, transparent);
+      animation: scanline 2.5s linear infinite;
+      opacity:0.7;
+    }
+    @keyframes scanline { 0%{top:10%} 100%{top:90%} }
+
+    #fp-scan-label {
+      position:absolute; bottom:8px; left:0; right:0;
+      text-align:center; font-size:11px; font-family:'Courier New',monospace;
+      color:#00ff88; letter-spacing:0.15em;
+      animation: label-blink 1.2s steps(1) infinite;
+    }
+    @keyframes label-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+    #fp-btn-row {
+      display:flex; justify-content:center; gap:10px;
+    }
+    .xp-dialog-btn {
+      min-width:90px; padding:4px 14px;
+      background: linear-gradient(to bottom, #fff 0%, #ddd 100%);
+      border: 2px solid #aaa;
+      border-right-color:#666; border-bottom-color:#666;
+      font-size:12px; font-family:'Tahoma',sans-serif;
+      cursor:pointer;
+    }
+    .xp-dialog-btn:hover { background: linear-gradient(to bottom,#eef4ff,#c8d8f8); border-color:#2462c8; }
+    .xp-dialog-btn:active { border-color:#666; border-right-color:#aaa; border-bottom-color:#aaa; }
 
     /* ── MEDIA PLAYER ── */
     #player-overlay {
@@ -111,8 +191,6 @@
       border-radius:4px; overflow:hidden;
       display:flex; flex-direction:column;
     }
-
-    /* WMP titlebar */
     #player-titlebar {
       background:linear-gradient(to right,#1a1a2a 0%,#2a3a6a 60%,#1a1a2a 100%);
       height:28px; flex-shrink:0; display:flex; align-items:center;
@@ -128,8 +206,6 @@
       color:#888; font-size:9px; line-height:12px; text-align:center; cursor:pointer;
     }
     .wmp-btn:hover { background:#3a3a4a; color:#bbb; }
-
-    /* menu bar */
     #player-menu {
       background:#111; border-bottom:1px solid #222;
       padding:2px 6px; flex-shrink:0; display:flex; gap:14px;
@@ -137,55 +213,37 @@
     .pm-item { font-size:11px; color:#888; font-family:Tahoma,sans-serif; cursor:default; padding:1px 4px; }
     .pm-item:hover { background:#2a2a3a; color:#bbb; }
 
-    /* ── VIDEO AREA: 4:3 ratio, centred ── */
     #video-wrapper {
-      flex:1; min-height:0;
-      background:#000;
+      flex:1; min-height:0; background:#000;
       display:flex; align-items:center; justify-content:center;
     }
     #video-container {
-      /* enforce 4:3 — as tall as available, constrained to 4:3 width */
-      position:relative;
-      height:100%;
-      aspect-ratio: 4 / 3;
-      max-width:100%;
-      background:#000;
-      overflow:hidden;
+      position:relative; height:100%; aspect-ratio:4/3; max-width:100%;
+      background:#000; overflow:hidden;
     }
-    /* video slightly oversized (106%) so gentle shake never shows edge */
     #main-video {
-      position:absolute;
-      width:106%; height:106%;
-      top:-3%; left:-3%;
+      position:absolute; width:106%; height:106%; top:-3%; left:-3%;
       object-fit:cover; display:block;
-      filter: blur(var(--vid-blur, 0px));
-      transform: translate(var(--vid-tx,0px), var(--vid-ty,0px));
+      filter: blur(var(--vid-blur,0px));
+      transform: translate(var(--vid-tx,0px),var(--vid-ty,0px));
       will-change: transform, filter;
     }
-
-    /* grain canvas */
     #grain-canvas {
       position:absolute; inset:0; width:100%; height:100%;
       pointer-events:none; mix-blend-mode:screen; opacity:0.18;
     }
-    /* scanlines */
     #vhs-overlay {
       position:absolute; inset:0; pointer-events:none;
-      background:repeating-linear-gradient(to bottom,
-        transparent 0px,transparent 3px,
-        rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
+      background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
     }
-    /* chroma */
     #chroma-overlay {
       position:absolute; inset:0; pointer-events:none;
-      box-shadow:inset 4px 0 0 rgba(255,0,0,0.08), inset -4px 0 0 rgba(0,180,255,0.06);
+      box-shadow:inset 4px 0 0 rgba(255,0,0,0.08),inset -4px 0 0 rgba(0,180,255,0.06);
     }
-    /* vignette */
     #vignette {
       position:absolute; inset:0; pointer-events:none;
       background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%);
     }
-    /* timecode */
     #timecode {
       position:absolute; bottom:8px; left:10px;
       font-family:'Courier New',monospace; font-size:12px;
@@ -193,12 +251,9 @@
       pointer-events:none; letter-spacing:0.06em;
     }
     #video-placeholder {
-      position:absolute; inset:0;
-      color:#333; font-family:Tahoma,sans-serif; font-size:13px;
-      display:flex; align-items:center; justify-content:center;
+      position:absolute; inset:0; color:#333; font-family:Tahoma,sans-serif;
+      font-size:13px; display:flex; align-items:center; justify-content:center;
     }
-
-    /* controls */
     #player-controls {
       background:#1a1a1a; padding:6px 8px 4px;
       border-top:1px solid #2a2a2a; flex-shrink:0;
@@ -211,8 +266,7 @@
     #ctrl-row { display:flex; align-items:center; gap:6px; }
     .ctrl-btn {
       background:#2a2a2a; border:1px solid #3a3a3a; color:#aaa;
-      font-size:11px; font-family:Tahoma,sans-serif;
-      padding:2px 8px; cursor:pointer; white-space:nowrap;
+      font-size:11px; font-family:Tahoma,sans-serif; padding:2px 8px; cursor:pointer; white-space:nowrap;
     }
     .ctrl-btn:hover { background:#3a3a3a; color:#ddd; }
     .ctrl-btn.active { background:#1a4a7a; border-color:#4a8abf; color:#c0e0ff; }
@@ -222,43 +276,240 @@
     #vol-wrap span { font-size:10px; color:#555; font-family:Tahoma,sans-serif; }
     #vol-slider { width:60px; height:4px; appearance:none; background:#2a2a2a; border:1px solid #333; cursor:pointer; }
     #vol-slider::-webkit-slider-thumb { appearance:none; width:10px; height:14px; background:#4080c0; border:1px solid #224; }
-
-    /* playlist */
     #playlist-panel { background:#0d0d0d; border-top:1px solid #222; max-height:80px; overflow-y:auto; flex-shrink:0; }
     .pl-item { font-size:11px; font-family:Tahoma,sans-serif; color:#555; padding:3px 10px; cursor:pointer; border-bottom:1px solid #111; display:flex; gap:8px; }
     .pl-item:hover { background:#1a1a2a; color:#889; }
     .pl-item.active { color:#80b0e0; background:#0d1a2a; }
     .pl-num { color:#333; min-width:20px; }
-
     #player-status {
       background:#0d0d0d; border-top:1px solid #181818;
       padding:2px 8px; font-size:10px; color:#334; font-family:Tahoma,sans-serif;
       display:flex; justify-content:space-between; flex-shrink:0;
     }
-
-    /* fullscreen hint */
     #fs-hint {
-      position:fixed; bottom:36px; right:12px;
-      font-size:10px; color:rgba(255,255,255,0.25);
-      font-family:'Courier New',monospace; pointer-events:none;
-      z-index:5; letter-spacing:0.08em;
+      position:fixed; bottom:36px; right:12px; font-size:10px;
+      color:rgba(255,255,255,0.22); font-family:'Courier New',monospace;
+      pointer-events:none; z-index:5; letter-spacing:0.08em;
     }
   </style>
 </head>
 <body>
 
-<!-- DESKTOP -->
+<!-- ══════════════════ DESKTOP ICONS ══════════════════ -->
 <div id="desktop">
-  <div class="folder-icon" onclick="showFingerprint()" tabindex="0">
-    <svg class="folder-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="14" width="44" height="30" rx="2" fill="#f5c842" stroke="#c8972a" stroke-width="1.5"/>
-      <path d="M2 18 Q2 14 6 14 H20 L24 10 H42 Q46 10 46 14 V18 Z" fill="#f5c842" stroke="#c8972a" stroke-width="1.2"/>
-      <rect x="2" y="18" width="44" height="26" rx="1" fill="#f8d84a" stroke="#c8972a" stroke-width="1"/>
-      <path d="M6 20 Q24 18 42 22" stroke="#ffe97a" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- 33.9425-118.4385 folder (triggers fingerprint) -->
+  <div class="desk-icon" onclick="showFingerprint()">
+    <svg viewBox="0 0 40 40" fill="none">
+      <rect x="1" y="11" width="38" height="26" rx="2" fill="#f5c842" stroke="#c8972a" stroke-width="1.2"/>
+      <path d="M1 15 Q1 11 5 11 H16 L20 8 H36 Q39 8 39 11 V15 Z" fill="#f5c842" stroke="#c8972a" stroke-width="1"/>
+      <rect x="1" y="15" width="38" height="22" rx="1" fill="#f8d84a" stroke="#c8972a" stroke-width="0.8"/>
+      <path d="M5 17 Q20 15 36 18" stroke="#ffe97a" stroke-width="1.2" opacity="0.7"/>
     </svg>
-    <div class="icon-label">33.9425-118.4385</div>
+    <div class="lbl">33.9425-118.4385</div>
   </div>
-</div>
+
+  <!-- EmbryoTrack.exe -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <ellipse cx="20" cy="20" rx="16" ry="18" fill="#d8f0ec" stroke="#3aaba0" stroke-width="1.5"/>
+      <ellipse cx="20" cy="20" rx="16" ry="18" fill="url(#embryo-grad)"/>
+      <defs>
+        <radialGradient id="embryo-grad" cx="38%" cy="32%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#2a9990" stop-opacity="0.15"/>
+        </radialGradient>
+      </defs>
+      <line x1="20" y1="3" x2="20" y2="37" stroke="#3aaba0" stroke-width="1" stroke-dasharray="2 2" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#3aaba0" opacity="0.35"/>
+      <circle cx="14" cy="17" r="2.5" fill="#3aaba0" opacity="0.25"/>
+      <circle cx="26" cy="23" r="2" fill="#3aaba0" opacity="0.2"/>
+      <ellipse cx="20" cy="20" rx="16" ry="18" fill="none" stroke="#3aaba0" stroke-width="1.5"/>
+    </svg>
+    <div class="lbl">EmbryoTrack.exe</div>
+  </div>
+
+  <!-- DonorRegistry_RESTRICTED.mdb -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <ellipse cx="20" cy="10" rx="14" ry="5" fill="#6090d0" stroke="#3060a0" stroke-width="1"/>
+      <rect x="6" y="10" width="28" height="18" fill="#5080c0" stroke="#3060a0" stroke-width="1"/>
+      <ellipse cx="20" cy="28" rx="14" ry="5" fill="#6090d0" stroke="#3060a0" stroke-width="1"/>
+      <ellipse cx="20" cy="18" rx="14" ry="5" fill="#7aA0e0" stroke="#3060a0" stroke-width="0.8"/>
+      <!-- red lock badge bottom-right -->
+      <circle cx="30" cy="30" r="8" fill="#cc2222" stroke="#fff" stroke-width="1.5"/>
+      <rect x="27" y="29" width="6" height="5" rx="1" fill="#fff"/>
+      <path d="M27.5 29 Q27.5 25.5 30 25.5 Q32.5 25.5 32.5 29" stroke="#fff" stroke-width="1.5" fill="none"/>
+    </svg>
+    <div class="lbl">DonorRegistry_RESTRICTED.mdb</div>
+  </div>
+
+  <!-- Project_MERIDIAN.lnk -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="17" fill="#1a1a2a" stroke="#c8a840" stroke-width="1.5"/>
+      <ellipse cx="20" cy="20" rx="8" ry="17" fill="none" stroke="#c8a840" stroke-width="1" opacity="0.7"/>
+      <line x1="3" y1="20" x2="37" y2="20" stroke="#c8a840" stroke-width="1" opacity="0.7"/>
+      <line x1="20" y1="3" x2="20" y2="37" stroke="#c8a840" stroke-width="1.2"/>
+      <!-- compass rose -->
+      <polygon points="20,10 22,19 20,17 18,19" fill="#e8c040"/>
+      <polygon points="20,30 22,21 20,23 18,21" fill="#a08020" opacity="0.8"/>
+      <polygon points="10,20 19,18 17,20 19,22" fill="#a08020" opacity="0.8"/>
+      <polygon points="30,20 21,18 23,20 21,22" fill="#e8c040"/>
+      <circle cx="20" cy="20" r="2" fill="#e8c040"/>
+    </svg>
+    <div class="lbl">Project_MERIDIAN.lnk</div>
+  </div>
+
+  <!-- RU486_Synthesis_Log.doc -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- doc body -->
+      <rect x="5" y="2" width="26" height="34" rx="1.5" fill="#fff" stroke="#2060c8" stroke-width="1.2"/>
+      <path d="M25 2 L31 8 L25 8 Z" fill="#a0b8e8" stroke="#2060c8" stroke-width="1"/>
+      <rect x="25" y="2" width="6" height="6" rx="0" fill="#c8d8f8" stroke="#2060c8" stroke-width="1"/>
+      <line x1="9" y1="14" x2="27" y2="14" stroke="#8888aa" stroke-width="1"/>
+      <line x1="9" y1="18" x2="27" y2="18" stroke="#8888aa" stroke-width="1"/>
+      <line x1="9" y1="22" x2="22" y2="22" stroke="#8888aa" stroke-width="1"/>
+      <!-- hexagon molecule badge bottom-right -->
+      <polygon points="32,24 37,27 37,33 32,36 27,33 27,27" fill="#3a8a5a" stroke="#1a5a3a" stroke-width="1"/>
+      <line x1="32" y1="24" x2="32" y2="36" stroke="#7adaaa" stroke-width="0.8" opacity="0.7"/>
+      <line x1="27" y1="27" x2="37" y2="33" stroke="#7adaaa" stroke-width="0.8" opacity="0.7"/>
+      <line x1="37" y1="27" x2="27" y2="33" stroke="#7adaaa" stroke-width="0.8" opacity="0.7"/>
+      <circle cx="32" cy="30" r="2" fill="#aaf8cc"/>
+    </svg>
+    <div class="lbl">RU486_Synthesis_Log.doc</div>
+  </div>
+
+  <!-- GermlineEdit_Flagged.doc -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <rect x="5" y="2" width="26" height="34" rx="1.5" fill="#fff" stroke="#2060c8" stroke-width="1.2"/>
+      <path d="M25 2 L31 8 L25 8 Z" fill="#a0b8e8" stroke="#2060c8" stroke-width="1"/>
+      <rect x="25" y="2" width="6" height="6" fill="#c8d8f8" stroke="#2060c8" stroke-width="1"/>
+      <line x1="9" y1="14" x2="27" y2="14" stroke="#8888aa" stroke-width="1"/>
+      <line x1="9" y1="18" x2="27" y2="18" stroke="#8888aa" stroke-width="1"/>
+      <line x1="9" y1="22" x2="22" y2="22" stroke="#8888aa" stroke-width="1"/>
+      <!-- yellow warning triangle badge -->
+      <polygon points="32,22 39,36 25,36" fill="#f5c000" stroke="#c08000" stroke-width="1.2"/>
+      <line x1="32" y1="26" x2="32" y2="32" stroke="#7a4000" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="32" cy="34" r="1.2" fill="#7a4000"/>
+    </svg>
+    <div class="lbl">GermlineEdit_Flagged.doc</div>
+  </div>
+
+  <!-- CRISPR_Protocol_Editor.exe -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- double helix -->
+      <path d="M14 4 C18 8 22 12 18 16 C14 20 18 24 22 28 C26 32 22 36 18 38" stroke="#5090e0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M26 4 C22 8 18 12 22 16 C26 20 22 24 18 28 C14 32 18 36 22 38" stroke="#a060d0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <!-- rungs -->
+      <line x1="14" y1="10" x2="26" y2="10" stroke="#88aadd" stroke-width="1" opacity="0.7"/>
+      <line x1="18" y1="16" x2="22" y2="16" stroke="#88aadd" stroke-width="1" opacity="0.7"/>
+      <line x1="18" y1="24" x2="22" y2="24" stroke="#88aadd" stroke-width="1" opacity="0.7"/>
+      <line x1="14" y1="30" x2="26" y2="30" stroke="#88aadd" stroke-width="1" opacity="0.7"/>
+      <!-- pencil badge -->
+      <rect x="27" y="22" width="11" height="5" rx="1" fill="#f8e040" stroke="#c0a000" stroke-width="1" transform="rotate(-40 27 22)"/>
+      <polygon points="27,31 29,27 25,29" fill="#c0a000" transform="rotate(-40 27 22)"/>
+    </svg>
+    <div class="lbl">CRISPR_Protocol_Editor.exe</div>
+  </div>
+
+  <!-- TrialSubject_Archive_DO_NOT_DELETE.exe -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- folder -->
+      <rect x="2" y="12" width="36" height="24" rx="2" fill="#f5c842" stroke="#c8972a" stroke-width="1.2"/>
+      <path d="M2 16 Q2 12 5 12 H15 L19 9 H35 Q38 9 38 12 V16 Z" fill="#f0be38" stroke="#c8972a" stroke-width="1"/>
+      <rect x="2" y="16" width="36" height="20" rx="1" fill="#f8d84a" stroke="#c8972a" stroke-width="0.8"/>
+      <!-- red prohibition circle overlay -->
+      <circle cx="28" cy="28" r="11" fill="rgba(180,0,0,0.88)" stroke="#fff" stroke-width="1.5"/>
+      <line x1="21" y1="21" x2="35" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <div class="lbl">TrialSubject_Archive_DO_NOT_DELETE.exe</div>
+  </div>
+
+  <!-- Cleanup_Util.exe — broom -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- broom handle -->
+      <line x1="28" y1="4" x2="12" y2="30" stroke="#8b5e3c" stroke-width="3" stroke-linecap="round"/>
+      <!-- broom head -->
+      <ellipse cx="10" cy="33" rx="9" ry="5" fill="#c8a050" stroke="#8b6820" stroke-width="1"/>
+      <!-- bristles -->
+      <line x1="4"  y1="33" x2="2"  y2="38" stroke="#8b6820" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="7"  y1="35" x2="5"  y2="40" stroke="#8b6820" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="10" y1="36" x2="9"  y2="41" stroke="#8b6820" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="13" y1="35" x2="13" y2="40" stroke="#8b6820" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="16" y1="33" x2="17" y2="38" stroke="#8b6820" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    <div class="lbl">Cleanup_Util.exe</div>
+  </div>
+
+  <!-- JaxCorp_Intranet.url — IE globe -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="17" fill="#d8eeff" stroke="#5090d0" stroke-width="1.5"/>
+      <ellipse cx="20" cy="20" rx="7" ry="17" fill="none" stroke="#5090d0" stroke-width="1" opacity="0.7"/>
+      <line x1="3" y1="20" x2="37" y2="20" stroke="#5090d0" stroke-width="1" opacity="0.8"/>
+      <line x1="6" y1="13" x2="34" y2="13" stroke="#5090d0" stroke-width="0.8" opacity="0.6"/>
+      <line x1="6" y1="27" x2="34" y2="27" stroke="#5090d0" stroke-width="0.8" opacity="0.6"/>
+      <!-- IE e letter -->
+      <text x="13" y="25" font-size="13" font-family="Times New Roman, serif" font-style="italic" font-weight="bold" fill="#2060b0" opacity="0.9">e</text>
+    </svg>
+    <div class="lbl">JaxCorp_Intranet.url</div>
+  </div>
+
+  <!-- VPN_Connect.lnk — padlock + signal -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- signal arcs -->
+      <path d="M8 18 Q20 6 32 18" stroke="#5090d0" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <path d="M11 21 Q20 12 29 21" stroke="#5090d0" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>
+      <path d="M14 24 Q20 18 26 24" stroke="#5090d0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- padlock body -->
+      <rect x="13" y="25" width="14" height="11" rx="2" fill="#f8c840" stroke="#c09000" stroke-width="1.2"/>
+      <path d="M15 25 Q15 19 20 19 Q25 19 25 25" stroke="#c09000" stroke-width="2" fill="none"/>
+      <circle cx="20" cy="30" r="2.5" fill="#a07000"/>
+      <line x1="20" y1="30" x2="20" y2="33" stroke="#a07000" stroke-width="1.5"/>
+    </svg>
+    <div class="lbl">VPN_Connect.lnk</div>
+  </div>
+
+  <!-- LIMS_Client.exe — database cylinder -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <ellipse cx="20" cy="10" rx="14" ry="5" fill="#80c090" stroke="#408050" stroke-width="1"/>
+      <rect x="6" y="10" width="28" height="20" fill="#70b080" stroke="#408050" stroke-width="1"/>
+      <ellipse cx="20" cy="30" rx="14" ry="5" fill="#80c090" stroke="#408050" stroke-width="1"/>
+      <ellipse cx="20" cy="18" rx="14" ry="5" fill="#90d0a0" stroke="#408050" stroke-width="0.8"/>
+      <text x="11" y="27" font-size="8" font-family="Tahoma,sans-serif" font-weight="bold" fill="#1a4028">LIMS</text>
+    </svg>
+    <div class="lbl">LIMS_Client.exe</div>
+  </div>
+
+  <!-- MapQuest — retro map logo -->
+  <div class="desk-icon">
+    <svg viewBox="0 0 40 40" fill="none">
+      <!-- map background -->
+      <rect x="3" y="5" width="34" height="28" rx="2" fill="#f8f0d8" stroke="#c0a860" stroke-width="1.2"/>
+      <!-- map lines -->
+      <path d="M3 15 Q15 13 20 17 Q26 21 37 18" stroke="#c0a860" stroke-width="1" fill="none" opacity="0.7"/>
+      <path d="M3 23 Q12 21 18 25 Q25 29 37 26" stroke="#c0a860" stroke-width="1" fill="none" opacity="0.7"/>
+      <line x1="14" y1="5" x2="12" y2="33" stroke="#c0a860" stroke-width="0.8" opacity="0.5"/>
+      <line x1="26" y1="5" x2="28" y2="33" stroke="#c0a860" stroke-width="0.8" opacity="0.5"/>
+      <!-- location pin -->
+      <circle cx="20" cy="17" r="5" fill="#e03030" stroke="#a01010" stroke-width="1"/>
+      <circle cx="20" cy="17" r="2" fill="#fff" opacity="0.7"/>
+      <path d="M20 22 L20 28" stroke="#a01010" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- MQ text -->
+      <text x="5" y="37" font-size="9" font-family="Arial,sans-serif" font-weight="bold" fill="#c06000">MapQuest</text>
+    </svg>
+    <div class="lbl">MapQuest</div>
+  </div>
+
+</div><!-- /desktop -->
 
 <!-- TASKBAR -->
 <div id="taskbar">
@@ -267,34 +518,76 @@
     <svg class="ql-icon" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#1e90ff" opacity="0.7"/></svg>
     <svg class="ql-icon" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="2" fill="#228b22" opacity="0.7"/></svg>
   </div>
-  <div id="taskbar-apps"><div class="task-btn">Windows Media Player</div></div>
+  <div id="taskbar-apps"></div>
   <div id="tray"><span id="task-clock">9:12 AM</span></div>
 </div>
 
-<!-- fullscreen hint -->
 <div id="fs-hint">[F] fullscreen</div>
 
-<!-- FINGERPRINT OVERLAY -->
-<div id="fp-overlay" onclick="dismissFingerprint()">
-  <svg class="fp-icon fp-pulse" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="48" stroke="white" stroke-width="1.5" opacity="0.3"/>
-    <path d="M50 15 C30 15 15 30 15 50 C15 65 22 78 33 86" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <path d="M50 20 C32 20 20 34 20 50 C20 62 26 73 36 80" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 26 C35 26 26 38 26 50 C26 61 31 70 40 76" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 32 C38 32 32 42 32 50 C32 59 36 67 43 72" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 38 C42 38 38 45 38 50 C38 57 41 63 47 67" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 44 C46 44 44 48 44 52 C44 56 46 60 50 62" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 15 C70 15 85 30 85 50 C85 65 78 78 67 86" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <path d="M50 20 C68 20 80 34 80 50 C80 62 74 73 64 80" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 26 C65 26 74 38 74 50 C74 61 69 70 60 76" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 32 C62 32 68 42 68 50 C68 59 64 67 57 72" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 38 C58 38 62 45 62 50 C62 57 59 63 53 67" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M50 44 C54 44 56 48 56 52 C56 56 54 60 50 62" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-  </svg>
-  <div id="fp-text">PLEASE SCAN FINGERPRINT</div>
+<!-- ══ FINGERPRINT — styled as XP error dialog ══ -->
+<div id="fp-overlay">
+  <div id="fp-dialog">
+    <div id="fp-titlebar">
+      <!-- XP-style shield/system icon -->
+      <svg id="fp-titlebar-icon" viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="1" width="14" height="14" rx="2" fill="#cc3322"/>
+        <text x="4" y="12" font-size="11" font-family="Arial" font-weight="bold" fill="#fff">!</text>
+      </svg>
+      <div id="fp-titlebar-text">System Security — JaxCorp Division 7</div>
+      <div class="xp-btn-chrome" onclick="dismissFingerprint()">✕</div>
+    </div>
+
+    <div id="fp-body">
+      <!-- big red X icon -->
+      <svg id="fp-error-icon" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="25" fill="#cc1111" stroke="#880000" stroke-width="2"/>
+        <circle cx="26" cy="26" r="21" fill="url(#xp-red-grad)"/>
+        <defs>
+          <radialGradient id="xp-red-grad" cx="35%" cy="25%">
+            <stop offset="0%" stop-color="#ff6060"/>
+            <stop offset="100%" stop-color="#aa0000"/>
+          </radialGradient>
+        </defs>
+        <line x1="16" y1="16" x2="36" y2="36" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+        <line x1="36" y1="16" x2="16" y2="36" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+
+      <div id="fp-content">
+        <div id="fp-msg-text">
+          Identity verification required to access restricted asset <strong>33.9425-118.4385</strong>.<br><br>
+          This action has been logged. Biometric confirmation must be completed within the current session window or access will be revoked.<br><br>
+          <em>Initiated by: JAXCORP\SYSTEM — Division 7 Authorization Protocol</em>
+        </div>
+
+        <div id="fp-scan-area" onclick="dismissFingerprint()">
+          <div id="fp-scanline"></div>
+          <svg class="fp-svg fp-pulse" viewBox="0 0 100 100" fill="none">
+            <path d="M50 15 C30 15 15 30 15 50 C15 65 22 78 33 86" stroke="#00ff88" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <path d="M50 20 C32 20 20 34 20 50 C20 62 26 73 36 80" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 26 C35 26 26 38 26 50 C26 61 31 70 40 76" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 32 C38 32 32 42 32 50 C32 59 36 67 43 72" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 38 C42 38 38 45 38 50 C38 57 41 63 47 67" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 44 C46 44 44 48 44 52 C44 56 46 60 50 62" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 15 C70 15 85 30 85 50 C85 65 78 78 67 86" stroke="#00ff88" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <path d="M50 20 C68 20 80 34 80 50 C80 62 74 73 64 80" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 26 C65 26 74 38 74 50 C74 61 69 70 60 76" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 32 C62 32 68 42 68 50 C68 59 64 67 57 72" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 38 C58 38 62 45 62 50 C62 57 59 63 53 67" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <path d="M50 44 C54 44 56 48 56 52 C56 56 54 60 50 62" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <div id="fp-scan-label">PLACE FINGER ON SENSOR</div>
+        </div>
+
+        <div id="fp-btn-row">
+          <button class="xp-dialog-btn" onclick="dismissFingerprint()">Authenticate</button>
+          <button class="xp-dialog-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- MEDIA PLAYER -->
+<!-- ══ MEDIA PLAYER (hidden until after fingerprint) ══ -->
 <div id="player-overlay">
   <div id="player-window">
     <div id="player-titlebar">
@@ -311,8 +604,6 @@
       <span class="pm-item">Tools</span>
       <span class="pm-item">Help</span>
     </div>
-
-    <!-- 4:3 wrapper -->
     <div id="video-wrapper">
       <div id="video-container">
         <video id="main-video" preload="auto"></video>
@@ -324,7 +615,6 @@
         <div id="video-placeholder">Loading media library...</div>
       </div>
     </div>
-
     <div id="player-controls">
       <div id="seek-track" onclick="seekClick(event)"><div id="seek-fill"></div></div>
       <div id="ctrl-row">
@@ -349,38 +639,36 @@
 </div>
 
 <script>
-  // ── FAKE CLOCK: starts at 9:12 AM, advances in real time ──
+  // ── FAKE CLOCK: 9:12 AM + real elapsed time ──
   const PAGE_OPEN = Date.now();
-  const FAKE_START_MIN = 9 * 60 + 12; // 9:12 AM in minutes
-
+  const FAKE_START_MIN = 9 * 60 + 12;
   function fakeClock() {
-    const elapsedMs  = Date.now() - PAGE_OPEN;
-    const totalMin   = FAKE_START_MIN + Math.floor(elapsedMs / 60000);
-    const h24        = Math.floor(totalMin / 60) % 24;
-    const m          = totalMin % 60;
-    const ampm       = h24 < 12 ? 'AM' : 'PM';
-    const h12        = h24 % 12 || 12;
+    const elapsed = Date.now() - PAGE_OPEN;
+    const total   = FAKE_START_MIN + Math.floor(elapsed / 60000);
+    const h24     = Math.floor(total / 60) % 24;
+    const m       = total % 60;
+    const ampm    = h24 < 12 ? 'AM' : 'PM';
+    const h12     = h24 % 12 || 12;
     document.getElementById('task-clock').textContent =
       h12 + ':' + String(m).padStart(2,'0') + ' ' + ampm;
   }
-  fakeClock();
-  setInterval(fakeClock, 10000); // update every 10s (taskbar resolution)
+  fakeClock(); setInterval(fakeClock, 10000);
 
-  // ── FULLSCREEN (F key) — works on desktop, fingerprint, and player ──
+  // ── F KEY FULLSCREEN ──
   document.addEventListener('keydown', e => {
     if (e.key !== 'f' && e.key !== 'F') return;
-    // Don't hijack if user is typing in an input
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(()=>{});
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(()=>{});
     }
   });
 
-  // ── FINGERPRINT ──
-  function showFingerprint() { document.getElementById('fp-overlay').classList.add('active'); }
+  // ── FINGERPRINT DIALOG ──
+  function showFingerprint() {
+    document.getElementById('fp-overlay').classList.add('active');
+  }
   function dismissFingerprint() {
     document.getElementById('fp-overlay').classList.remove('active');
     openPlayer();
@@ -388,9 +676,7 @@
 
   // ── VIDEO PLAYER ──
   const VIDEO_DIR = 'Videos/';
-  let tracks = [];
-  let currentIndex = 0;
-  let advancing = false;
+  let tracks = [], currentIndex = 0, advancing = false;
   const vid = document.getElementById('main-video');
   const placeholder = document.getElementById('video-placeholder');
 
@@ -402,32 +688,24 @@
         tracks = data.files.map(f => ({ name: f, src: VIDEO_DIR + f }));
       }
     } catch(e) {}
-
     if (tracks.length === 0) {
-      const candidates = [];
+      const cands = [];
       for (let i=1;i<=20;i++) {
-        candidates.push(i.toString().padStart(2,'0')+'.mp4');
-        candidates.push('video'+i+'.mp4');
-        candidates.push('clip'+i+'.mp4');
+        cands.push(i.toString().padStart(2,'0')+'.mp4');
+        cands.push('video'+i+'.mp4'); cands.push('clip'+i+'.mp4');
       }
       const checks = await Promise.allSettled(
-        [...new Set(candidates)].sort().map(f =>
-          fetch(VIDEO_DIR+f,{method:'HEAD'}).then(r=>r.ok?f:null)
-        )
+        [...new Set(cands)].sort().map(f =>
+          fetch(VIDEO_DIR+f,{method:'HEAD'}).then(r=>r.ok?f:null))
       );
-      tracks = checks
-        .filter(c=>c.status==='fulfilled'&&c.value)
-        .map(c=>({name:c.value,src:VIDEO_DIR+c.value}))
-        .sort((a,b)=>a.name.localeCompare(b.name));
+      tracks = checks.filter(c=>c.status==='fulfilled'&&c.value)
+        .map(c=>({name:c.value,src:VIDEO_DIR+c.value}));
     }
-
     renderPlaylist();
-    if (tracks.length > 0) {
-      placeholder.style.display = 'none';
-      loadTrack(0);
-    } else {
-      placeholder.textContent = 'No media files found in /Vector/Videos/';
-      document.getElementById('status-text').textContent = 'No media found.';
+    if (tracks.length > 0) { placeholder.style.display='none'; loadTrack(0); }
+    else {
+      placeholder.textContent='No media files found in /Vector/Videos/';
+      document.getElementById('status-text').textContent='No media found.';
     }
   }
 
@@ -435,174 +713,103 @@
     const panel = document.getElementById('playlist-panel');
     panel.innerHTML = '';
     tracks.forEach((item,i)=>{
-      const d = document.createElement('div');
-      d.className = 'pl-item'+(i===currentIndex?' active':'');
-      d.innerHTML = `<span class="pl-num">${i+1}.</span><span>${item.name}</span>`;
-      d.onclick = ()=>loadTrack(i);
+      const d=document.createElement('div');
+      d.className='pl-item'+(i===currentIndex?' active':'');
+      d.innerHTML=`<span class="pl-num">${i+1}.</span><span>${item.name}</span>`;
+      d.onclick=()=>loadTrack(i);
       panel.appendChild(d);
     });
   }
 
   function loadTrack(idx) {
-    if (idx < 0 || idx >= tracks.length) return;
-    advancing = false;
-    currentIndex = idx;
-    const item = tracks[idx];
-    vid.src = item.src;
-    vid.load();
-    vid.play().catch(()=>{});
-    document.getElementById('track-label').textContent = item.name;
-    document.getElementById('player-title-text').textContent = 'Windows Media Player — '+item.name;
-    document.getElementById('status-text').textContent = 'Now playing: '+item.name;
-    document.getElementById('btn-play').textContent = '❚❚ Pause';
+    if (idx<0||idx>=tracks.length) return;
+    advancing=false; currentIndex=idx;
+    const item=tracks[idx];
+    vid.src=item.src; vid.load(); vid.play().catch(()=>{});
+    document.getElementById('track-label').textContent=item.name;
+    document.getElementById('player-title-text').textContent='Windows Media Player — '+item.name;
+    document.getElementById('status-text').textContent='Now playing: '+item.name;
+    document.getElementById('btn-play').textContent='❚❚ Pause';
     document.getElementById('btn-play').classList.add('active');
     renderPlaylist();
   }
 
   function advanceOrEnd() {
     if (advancing) return;
-    advancing = true;
-    if (currentIndex + 1 < tracks.length) {
-      loadTrack(currentIndex + 1);
+    advancing=true;
+    if (currentIndex+1 < tracks.length) {
+      loadTrack(currentIndex+1);
     } else {
-      // Last video — pause on final frame, stay in player
       vid.pause();
-      document.getElementById('status-text').textContent = 'Playback complete.';
-      document.getElementById('btn-play').textContent = '▶ Play';
+      document.getElementById('status-text').textContent='Playback complete.';
+      document.getElementById('btn-play').textContent='▶ Play';
     }
   }
 
-  vid.addEventListener('timeupdate', () => {
-    updateSeek();
-    if (!advancing && vid.currentTime >= 5) advanceOrEnd();
-  });
+  vid.addEventListener('timeupdate',()=>{ updateSeek(); if(!advancing&&vid.currentTime>=5) advanceOrEnd(); });
   vid.addEventListener('ended', advanceOrEnd);
 
   function updateSeek() {
-    const dur = Math.min(vid.duration || 0, 5);
-    const pct = dur > 0 ? Math.min(vid.currentTime, 5) / dur * 100 : 0;
-    document.getElementById('seek-fill').style.width = pct + '%';
-    document.getElementById('time-display').textContent =
-      fmt(Math.min(vid.currentTime,5)) + ' / ' + fmt(dur);
+    const dur=Math.min(vid.duration||0,5);
+    const pct=dur>0?Math.min(vid.currentTime,5)/dur*100:0;
+    document.getElementById('seek-fill').style.width=pct+'%';
+    document.getElementById('time-display').textContent=fmt(Math.min(vid.currentTime,5))+' / '+fmt(dur);
   }
-
-  function fmt(s) {
-    return Math.floor(s/60)+':'+(Math.floor(s%60)).toString().padStart(2,'0');
-  }
-
-  function togglePlay() {
-    if (vid.paused) { vid.play(); document.getElementById('btn-play').textContent='❚❚ Pause'; }
-    else            { vid.pause(); document.getElementById('btn-play').textContent='▶ Play'; }
-  }
-  function stopTrack() {
-    vid.pause(); vid.currentTime=0;
-    document.getElementById('btn-play').textContent='▶ Play';
-    document.getElementById('status-text').textContent='Stopped.';
-  }
-  function prevTrack() { loadTrack(currentIndex-1); }
-  function nextTrack() { advanceOrEnd(); }
-  function setVol(v)   { vid.volume=parseFloat(v); }
-  function seekClick(e) {
-    if (!vid.duration) return;
-    const rect=e.currentTarget.getBoundingClientRect();
-    vid.currentTime=Math.min(((e.clientX-rect.left)/rect.width)*5, 5);
-  }
-  function closePlayer() { document.getElementById('player-overlay').classList.remove('active'); }
-  function openPlayer()  {
-    document.getElementById('player-overlay').classList.add('active');
-    buildPlaylist();
-  }
+  function fmt(s){ return Math.floor(s/60)+':'+(Math.floor(s%60)).toString().padStart(2,'0'); }
+  function togglePlay(){ if(vid.paused){vid.play();document.getElementById('btn-play').textContent='❚❚ Pause';}else{vid.pause();document.getElementById('btn-play').textContent='▶ Play';} }
+  function stopTrack(){ vid.pause();vid.currentTime=0;document.getElementById('btn-play').textContent='▶ Play';document.getElementById('status-text').textContent='Stopped.'; }
+  function prevTrack(){ loadTrack(currentIndex-1); }
+  function nextTrack(){ advanceOrEnd(); }
+  function setVol(v){ vid.volume=parseFloat(v); }
+  function seekClick(e){ if(!vid.duration)return;const rect=e.currentTarget.getBoundingClientRect();vid.currentTime=Math.min(((e.clientX-rect.left)/rect.width)*5,5); }
+  function closePlayer(){ document.getElementById('player-overlay').classList.remove('active'); }
+  function openPlayer(){ document.getElementById('player-overlay').classList.add('active'); buildPlaylist(); }
 
   // ── CAMCORDER FILTER ──
-  const grainCanvas = document.getElementById('grain-canvas');
-  const gctx        = grainCanvas.getContext('2d');
-  const timecodeEl  = document.getElementById('timecode');
-  const vc          = document.getElementById('video-container');
+  const grainCanvas=document.getElementById('grain-canvas');
+  const gctx=grainCanvas.getContext('2d');
+  const timecodeEl=document.getElementById('timecode');
+  const vc=document.getElementById('video-container');
 
-  function resizeGrain() {
-    grainCanvas.width  = vc.offsetWidth;
-    grainCanvas.height = vc.offsetHeight;
-  }
-  resizeGrain();
-  window.addEventListener('resize', resizeGrain);
+  function resizeGrain(){ grainCanvas.width=vc.offsetWidth; grainCanvas.height=vc.offsetHeight; }
+  resizeGrain(); window.addEventListener('resize',resizeGrain);
 
-  // ── GENTLE SHAKE: spring physics, slow impulses ──
-  let shakeX=0, shakeY=0, shakeVX=0, shakeVY=0;
-  // Max offset in px: 4:3 container uses 106% video, so ~3% margin each side.
-  // For a 600px-tall container that's ~18px margin — keep max well under that.
-  const SHAKE_MAX  = 8;    // max pixels, much gentler
-  const IMPULSE    = 0.55; // random force per frame
-  const DAMPING    = 0.90; // velocity decay (higher = slower)
-  const SPRING     = 0.025; // pull back to centre (lower = lazier)
-  const BLUR_BASE  = 1.2;
-  const BLUR_SHAKE = 1.5;
+  let shakeX=0,shakeY=0,shakeVX=0,shakeVY=0;
+  const SHAKE_MAX=8, IMPULSE=0.55, DAMPING=0.90, SPRING=0.025;
+  const BLUR_BASE=1.2, BLUR_SHAKE=1.5, SHAKE_INTERVAL=66;
+  let lastShakeTime=0;
 
-  // Run shake update at ~15fps to feel sluggish / handheld, not jittery
-  let lastShakeTime = 0;
-  const SHAKE_INTERVAL = 66; // ms (~15fps)
-
-  function drawFrame(ts) {
-    // ── shake (throttled) ──
-    if (ts - lastShakeTime >= SHAKE_INTERVAL) {
-      lastShakeTime = ts;
-      shakeVX += (Math.random()-0.5) * IMPULSE;
-      shakeVY += (Math.random()-0.5) * IMPULSE;
-      shakeVX *= DAMPING;
-      shakeVY *= DAMPING;
-      shakeVX -= shakeX * SPRING;
-      shakeVY -= shakeY * SPRING;
-      shakeX  += shakeVX;
-      shakeY  += shakeVY;
-      shakeX   = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeX));
-      shakeY   = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeY));
-
-      const mag  = Math.sqrt(shakeX*shakeX + shakeY*shakeY) / SHAKE_MAX;
-      const blur = BLUR_BASE + mag * BLUR_SHAKE;
-
-      vid.style.setProperty('--vid-tx',   shakeX.toFixed(2)+'px');
-      vid.style.setProperty('--vid-ty',   shakeY.toFixed(2)+'px');
-      vid.style.setProperty('--vid-blur', blur.toFixed(2)+'px');
+  function drawFrame(ts){
+    if(ts-lastShakeTime>=SHAKE_INTERVAL){
+      lastShakeTime=ts;
+      shakeVX+=(Math.random()-0.5)*IMPULSE; shakeVY+=(Math.random()-0.5)*IMPULSE;
+      shakeVX*=DAMPING; shakeVY*=DAMPING;
+      shakeVX-=shakeX*SPRING; shakeVY-=shakeY*SPRING;
+      shakeX+=shakeVX; shakeY+=shakeVY;
+      shakeX=Math.max(-SHAKE_MAX,Math.min(SHAKE_MAX,shakeX));
+      shakeY=Math.max(-SHAKE_MAX,Math.min(SHAKE_MAX,shakeY));
+      const mag=Math.sqrt(shakeX*shakeX+shakeY*shakeY)/SHAKE_MAX;
+      const blur=BLUR_BASE+mag*BLUR_SHAKE;
+      vid.style.setProperty('--vid-tx',shakeX.toFixed(2)+'px');
+      vid.style.setProperty('--vid-ty',shakeY.toFixed(2)+'px');
+      vid.style.setProperty('--vid-blur',blur.toFixed(2)+'px');
     }
-
-    // ── grain (every frame, but only as big as the container) ──
-    const w = grainCanvas.width, h = grainCanvas.height;
-    if (w > 0 && h > 0) {
-      const img = gctx.createImageData(w, h);
-      const d   = img.data;
-      for (let i=0; i<d.length; i+=4) {
-        const v = (Math.random()*255)|0;
-        d[i]=v; d[i+1]=v; d[i+2]=v;
-        d[i+3] = (Math.random()*65+10)|0;
-      }
-      gctx.putImageData(img, 0, 0);
-      if (Math.random()<0.04) {
-        const by=(Math.random()*h)|0;
-        gctx.fillStyle=`rgba(255,255,255,${(Math.random()*0.12).toFixed(2)})`;
-        gctx.fillRect(0, by, w, (Math.random()*4+1)|0);
-      }
+    const w=grainCanvas.width,h=grainCanvas.height;
+    if(w>0&&h>0){
+      const img=gctx.createImageData(w,h),d=img.data;
+      for(let i=0;i<d.length;i+=4){const v=(Math.random()*255)|0;d[i]=v;d[i+1]=v;d[i+2]=v;d[i+3]=(Math.random()*65+10)|0;}
+      gctx.putImageData(img,0,0);
+      if(Math.random()<0.04){const by=(Math.random()*h)|0;gctx.fillStyle=`rgba(255,255,255,${(Math.random()*0.12).toFixed(2)})`;gctx.fillRect(0,by,w,(Math.random()*4+1)|0);}
     }
-
-    // ── timecode ──
-    if (!vid.paused && vid.currentTime > 0) {
-      const now = new Date();
-      timecodeEl.textContent =
-        `REC ● ${now.getFullYear()}.` +
-        `${String(now.getMonth()+1).padStart(2,'0')}.` +
-        `${String(now.getDate()).padStart(2,'0')} ` +
-        fmtTC(vid.currentTime);
-    } else {
-      timecodeEl.textContent = '';
-    }
-
+    if(!vid.paused&&vid.currentTime>0){
+      const now=new Date();
+      timecodeEl.textContent=`REC ● ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${fmtTC(vid.currentTime)}`;
+    } else { timecodeEl.textContent=''; }
     requestAnimationFrame(drawFrame);
   }
   requestAnimationFrame(drawFrame);
 
-  function fmtTC(s) {
-    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60),
-          sec=Math.floor(s%60), fr=Math.floor((s%1)*30);
-    return [h,m,sec,fr].map(x=>String(x).padStart(2,'0')).join(':');
-  }
+  function fmtTC(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60),fr=Math.floor((s%1)*30);return[h,m,sec,fr].map(x=>String(x).padStart(2,'0')).join(':');}
 </script>
 </body>
 </html>
