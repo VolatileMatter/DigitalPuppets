@@ -519,7 +519,7 @@
     <svg class="ql-icon" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="2" fill="#228b22" opacity="0.7"/></svg>
   </div>
   <div id="taskbar-apps"></div>
-  <div id="tray"><span id="task-clock">9:12 AM</span></div>
+  <div id="tray"><span id="task-clock">9:12 PM</span></div>
 </div>
 
 <div id="fs-hint">[F] fullscreen</div>
@@ -641,7 +641,7 @@
 <script>
   // ── FAKE CLOCK: 9:12 AM + real elapsed time ──
   const PAGE_OPEN = Date.now();
-  const FAKE_START_MIN = 9 * 60 + 12;
+  const FAKE_START_MIN = 21 * 60 + 12; // 9:12 PM
   function fakeClock() {
     const elapsed = Date.now() - PAGE_OPEN;
     const total   = FAKE_START_MIN + Math.floor(elapsed / 60000);
