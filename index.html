@@ -35,4 +35,14 @@
   <p>Interactive experiences</p>
   <a href="Vector/login.html">→ Enter</a>
 </body>
+<script>
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'f' && e.key !== 'F') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+</script>
 </html>
