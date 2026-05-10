@@ -99,7 +99,7 @@
 
     /* ── MEDIA PLAYER ── */
     #player-overlay {
-      display:none; position:fixed; inset:0; background:#000;
+      display:none; position:fixed; inset:0; background:#111;
       z-index:200; align-items:center; justify-content:center;
     }
     #player-overlay.active { display:flex; }
@@ -137,18 +137,27 @@
     .pm-item { font-size:11px; color:#888; font-family:Tahoma,sans-serif; cursor:default; padding:1px 4px; }
     .pm-item:hover { background:#2a2a3a; color:#bbb; }
 
-    /* video area — fills remaining space; shake done via transform on the video itself */
-    #video-container {
-      background:#000; position:relative; flex:1; min-height:0;
+    /* ── VIDEO AREA: 4:3 ratio, centred ── */
+    #video-wrapper {
+      flex:1; min-height:0;
+      background:#000;
       display:flex; align-items:center; justify-content:center;
+    }
+    #video-container {
+      /* enforce 4:3 — as tall as available, constrained to 4:3 width */
+      position:relative;
+      height:100%;
+      aspect-ratio: 4 / 3;
+      max-width:100%;
+      background:#000;
       overflow:hidden;
     }
-    /* Video slightly oversized so shake crop never reveals black edge */
+    /* video slightly oversized (106%) so gentle shake never shows edge */
     #main-video {
-      /* 110% so a ±5% shake never shows background */
-      width:110%; height:110%;
+      position:absolute;
+      width:106%; height:106%;
+      top:-3%; left:-3%;
       object-fit:cover; display:block;
-      /* blur + shake applied here via JS-driven CSS vars */
       filter: blur(var(--vid-blur, 0px));
       transform: translate(var(--vid-tx,0px), var(--vid-ty,0px));
       will-change: transform, filter;
@@ -157,33 +166,36 @@
     /* grain canvas */
     #grain-canvas {
       position:absolute; inset:0; width:100%; height:100%;
-      pointer-events:none; mix-blend-mode:screen; opacity:0.20;
+      pointer-events:none; mix-blend-mode:screen; opacity:0.18;
     }
     /* scanlines */
     #vhs-overlay {
       position:absolute; inset:0; pointer-events:none;
-      background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
+      background:repeating-linear-gradient(to bottom,
+        transparent 0px,transparent 3px,
+        rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
     }
     /* chroma */
     #chroma-overlay {
       position:absolute; inset:0; pointer-events:none;
-      box-shadow:inset 4px 0 0 rgba(255,0,0,0.09), inset -4px 0 0 rgba(0,180,255,0.07);
+      box-shadow:inset 4px 0 0 rgba(255,0,0,0.08), inset -4px 0 0 rgba(0,180,255,0.06);
     }
     /* vignette */
     #vignette {
       position:absolute; inset:0; pointer-events:none;
-      background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.7) 100%);
+      background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%);
     }
     /* timecode */
     #timecode {
-      position:absolute; bottom:8px; left:12px;
-      font-family:'Courier New',monospace; font-size:13px;
-      color:rgba(255,255,180,0.8); text-shadow:1px 1px 3px #000;
+      position:absolute; bottom:8px; left:10px;
+      font-family:'Courier New',monospace; font-size:12px;
+      color:rgba(255,255,180,0.82); text-shadow:1px 1px 3px #000;
       pointer-events:none; letter-spacing:0.06em;
     }
     #video-placeholder {
+      position:absolute; inset:0;
       color:#333; font-family:Tahoma,sans-serif; font-size:13px;
-      text-align:center; padding:20px; position:absolute;
+      display:flex; align-items:center; justify-content:center;
     }
 
     /* controls */
@@ -195,9 +207,7 @@
       width:100%; height:8px; background:#2a2a2a; border:1px solid #333;
       margin-bottom:6px; position:relative; overflow:hidden; cursor:pointer;
     }
-    #seek-fill {
-      height:100%; background:linear-gradient(to right,#4080c0,#60a0e0); width:0%;
-    }
+    #seek-fill { height:100%; background:linear-gradient(to right,#4080c0,#60a0e0); width:0%; }
     #ctrl-row { display:flex; align-items:center; gap:6px; }
     .ctrl-btn {
       background:#2a2a2a; border:1px solid #3a3a3a; color:#aaa;
@@ -214,7 +224,7 @@
     #vol-slider::-webkit-slider-thumb { appearance:none; width:10px; height:14px; background:#4080c0; border:1px solid #224; }
 
     /* playlist */
-    #playlist-panel { background:#0d0d0d; border-top:1px solid #222; max-height:90px; overflow-y:auto; flex-shrink:0; }
+    #playlist-panel { background:#0d0d0d; border-top:1px solid #222; max-height:80px; overflow-y:auto; flex-shrink:0; }
     .pl-item { font-size:11px; font-family:Tahoma,sans-serif; color:#555; padding:3px 10px; cursor:pointer; border-bottom:1px solid #111; display:flex; gap:8px; }
     .pl-item:hover { background:#1a1a2a; color:#889; }
     .pl-item.active { color:#80b0e0; background:#0d1a2a; }
@@ -224,6 +234,14 @@
       background:#0d0d0d; border-top:1px solid #181818;
       padding:2px 8px; font-size:10px; color:#334; font-family:Tahoma,sans-serif;
       display:flex; justify-content:space-between; flex-shrink:0;
+    }
+
+    /* fullscreen hint */
+    #fs-hint {
+      position:fixed; bottom:36px; right:12px;
+      font-size:10px; color:rgba(255,255,255,0.25);
+      font-family:'Courier New',monospace; pointer-events:none;
+      z-index:5; letter-spacing:0.08em;
     }
   </style>
 </head>
@@ -250,8 +268,11 @@
     <svg class="ql-icon" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="2" fill="#228b22" opacity="0.7"/></svg>
   </div>
   <div id="taskbar-apps"><div class="task-btn">Windows Media Player</div></div>
-  <div id="tray"><span id="task-clock">--:--</span></div>
+  <div id="tray"><span id="task-clock">9:12 AM</span></div>
 </div>
+
+<!-- fullscreen hint -->
+<div id="fs-hint">[F] fullscreen</div>
 
 <!-- FINGERPRINT OVERLAY -->
 <div id="fp-overlay" onclick="dismissFingerprint()">
@@ -291,14 +312,17 @@
       <span class="pm-item">Help</span>
     </div>
 
-    <div id="video-container">
-      <video id="main-video" preload="auto"></video>
-      <canvas id="grain-canvas"></canvas>
-      <div id="vhs-overlay"></div>
-      <div id="chroma-overlay"></div>
-      <div id="vignette"></div>
-      <div id="timecode"></div>
-      <div id="video-placeholder">Loading media library...</div>
+    <!-- 4:3 wrapper -->
+    <div id="video-wrapper">
+      <div id="video-container">
+        <video id="main-video" preload="auto"></video>
+        <canvas id="grain-canvas"></canvas>
+        <div id="vhs-overlay"></div>
+        <div id="chroma-overlay"></div>
+        <div id="vignette"></div>
+        <div id="timecode"></div>
+        <div id="video-placeholder">Loading media library...</div>
+      </div>
     </div>
 
     <div id="player-controls">
@@ -325,14 +349,35 @@
 </div>
 
 <script>
-  // ── CLOCK ──
-  function tickTask() {
-    const n = new Date();
+  // ── FAKE CLOCK: starts at 9:12 AM, advances in real time ──
+  const PAGE_OPEN = Date.now();
+  const FAKE_START_MIN = 9 * 60 + 12; // 9:12 AM in minutes
+
+  function fakeClock() {
+    const elapsedMs  = Date.now() - PAGE_OPEN;
+    const totalMin   = FAKE_START_MIN + Math.floor(elapsedMs / 60000);
+    const h24        = Math.floor(totalMin / 60) % 24;
+    const m          = totalMin % 60;
+    const ampm       = h24 < 12 ? 'AM' : 'PM';
+    const h12        = h24 % 12 || 12;
     document.getElementById('task-clock').textContent =
-      n.getHours().toString().padStart(2,'0') + ':' +
-      n.getMinutes().toString().padStart(2,'0');
+      h12 + ':' + String(m).padStart(2,'0') + ' ' + ampm;
   }
-  tickTask(); setInterval(tickTask, 10000);
+  fakeClock();
+  setInterval(fakeClock, 10000); // update every 10s (taskbar resolution)
+
+  // ── FULLSCREEN (F key) — works on desktop, fingerprint, and player ──
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'f' && e.key !== 'F') return;
+    // Don't hijack if user is typing in an input
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
 
   // ── FINGERPRINT ──
   function showFingerprint() { document.getElementById('fp-overlay').classList.add('active'); }
@@ -345,7 +390,7 @@
   const VIDEO_DIR = 'Videos/';
   let tracks = [];
   let currentIndex = 0;
-  let advancing = false; // guard against double-advance
+  let advancing = false;
   const vid = document.getElementById('main-video');
   const placeholder = document.getElementById('video-placeholder');
 
@@ -359,7 +404,6 @@
     } catch(e) {}
 
     if (tracks.length === 0) {
-      // fallback probe
       const candidates = [];
       for (let i=1;i<=20;i++) {
         candidates.push(i.toString().padStart(2,'0')+'.mp4');
@@ -421,7 +465,6 @@
     if (currentIndex + 1 < tracks.length) {
       loadTrack(currentIndex + 1);
     } else {
-      // All videos done — close player, return to desktop
       vid.pause();
       document.getElementById('player-overlay').classList.remove('active');
       document.getElementById('status-text').textContent = 'Playback complete.';
@@ -429,12 +472,10 @@
     }
   }
 
-  // 5-second clip limiter + auto-advance
   vid.addEventListener('timeupdate', () => {
     updateSeek();
     if (!advancing && vid.currentTime >= 5) advanceOrEnd();
   });
-  // also handle natural end (for clips shorter than 5s)
   vid.addEventListener('ended', advanceOrEnd);
 
   function updateSeek() {
@@ -446,13 +487,12 @@
   }
 
   function fmt(s) {
-    const m = Math.floor(s/60);
-    return m+':'+(Math.floor(s%60)).toString().padStart(2,'0');
+    return Math.floor(s/60)+':'+(Math.floor(s%60)).toString().padStart(2,'0');
   }
 
   function togglePlay() {
     if (vid.paused) { vid.play(); document.getElementById('btn-play').textContent='❚❚ Pause'; }
-    else { vid.pause(); document.getElementById('btn-play').textContent='▶ Play'; }
+    else            { vid.pause(); document.getElementById('btn-play').textContent='▶ Play'; }
   }
   function stopTrack() {
     vid.pause(); vid.currentTime=0;
@@ -461,90 +501,102 @@
   }
   function prevTrack() { loadTrack(currentIndex-1); }
   function nextTrack() { advanceOrEnd(); }
-  function setVol(v) { vid.volume=parseFloat(v); }
+  function setVol(v)   { vid.volume=parseFloat(v); }
   function seekClick(e) {
     if (!vid.duration) return;
     const rect=e.currentTarget.getBoundingClientRect();
     vid.currentTime=Math.min(((e.clientX-rect.left)/rect.width)*5, 5);
   }
   function closePlayer() { document.getElementById('player-overlay').classList.remove('active'); }
-  function openPlayer() {
+  function openPlayer()  {
     document.getElementById('player-overlay').classList.add('active');
     buildPlaylist();
   }
 
-  // ── CAMCORDER FILTER: grain + blur + camera shake ──
+  // ── CAMCORDER FILTER ──
   const grainCanvas = document.getElementById('grain-canvas');
-  const gctx = grainCanvas.getContext('2d');
-  const timecodeEl = document.getElementById('timecode');
+  const gctx        = grainCanvas.getContext('2d');
+  const timecodeEl  = document.getElementById('timecode');
+  const vc          = document.getElementById('video-container');
 
   function resizeGrain() {
-    const vc = document.getElementById('video-container');
     grainCanvas.width  = vc.offsetWidth;
     grainCanvas.height = vc.offsetHeight;
   }
   resizeGrain();
   window.addEventListener('resize', resizeGrain);
 
-  // Perlin-ish smooth shake: weighted accumulator
+  // ── GENTLE SHAKE: spring physics, slow impulses ──
   let shakeX=0, shakeY=0, shakeVX=0, shakeVY=0;
-  const SHAKE_MAX = 18;    // max pixel offset (video is 110% so this is safe)
-  const BLUR_BASE = 1.5;   // constant mild blur
-  const BLUR_SHAKE = 2.5;  // extra blur proportional to shake magnitude
+  // Max offset in px: 4:3 container uses 106% video, so ~3% margin each side.
+  // For a 600px-tall container that's ~18px margin — keep max well under that.
+  const SHAKE_MAX  = 8;    // max pixels, much gentler
+  const IMPULSE    = 0.55; // random force per frame
+  const DAMPING    = 0.90; // velocity decay (higher = slower)
+  const SPRING     = 0.025; // pull back to centre (lower = lazier)
+  const BLUR_BASE  = 1.2;
+  const BLUR_SHAKE = 1.5;
 
-  function drawFrame() {
-    // ── shake physics: random impulses + spring return ──
-    shakeVX += (Math.random()-0.5)*3.2;
-    shakeVY += (Math.random()-0.5)*3.2;
-    shakeVX *= 0.78; // damping
-    shakeVY *= 0.78;
-    // spring back toward 0
-    shakeVX -= shakeX * 0.06;
-    shakeVY -= shakeY * 0.06;
-    shakeX += shakeVX;
-    shakeY += shakeVY;
-    // clamp
-    shakeX = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeX));
-    shakeY = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeY));
+  // Run shake update at ~15fps to feel sluggish / handheld, not jittery
+  let lastShakeTime = 0;
+  const SHAKE_INTERVAL = 66; // ms (~15fps)
 
-    const shakeMag = Math.sqrt(shakeX*shakeX + shakeY*shakeY) / SHAKE_MAX;
-    const blur = BLUR_BASE + shakeMag * BLUR_SHAKE;
+  function drawFrame(ts) {
+    // ── shake (throttled) ──
+    if (ts - lastShakeTime >= SHAKE_INTERVAL) {
+      lastShakeTime = ts;
+      shakeVX += (Math.random()-0.5) * IMPULSE;
+      shakeVY += (Math.random()-0.5) * IMPULSE;
+      shakeVX *= DAMPING;
+      shakeVY *= DAMPING;
+      shakeVX -= shakeX * SPRING;
+      shakeVY -= shakeY * SPRING;
+      shakeX  += shakeVX;
+      shakeY  += shakeVY;
+      shakeX   = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeX));
+      shakeY   = Math.max(-SHAKE_MAX, Math.min(SHAKE_MAX, shakeY));
 
-    vid.style.setProperty('--vid-tx', shakeX.toFixed(1)+'px');
-    vid.style.setProperty('--vid-ty', shakeY.toFixed(1)+'px');
-    vid.style.setProperty('--vid-blur', blur.toFixed(2)+'px');
+      const mag  = Math.sqrt(shakeX*shakeX + shakeY*shakeY) / SHAKE_MAX;
+      const blur = BLUR_BASE + mag * BLUR_SHAKE;
 
-    // ── grain ──
+      vid.style.setProperty('--vid-tx',   shakeX.toFixed(2)+'px');
+      vid.style.setProperty('--vid-ty',   shakeY.toFixed(2)+'px');
+      vid.style.setProperty('--vid-blur', blur.toFixed(2)+'px');
+    }
+
+    // ── grain (every frame, but only as big as the container) ──
     const w = grainCanvas.width, h = grainCanvas.height;
     if (w > 0 && h > 0) {
       const img = gctx.createImageData(w, h);
-      const d = img.data;
+      const d   = img.data;
       for (let i=0; i<d.length; i+=4) {
         const v = (Math.random()*255)|0;
         d[i]=v; d[i+1]=v; d[i+2]=v;
-        d[i+3] = (Math.random()*70+15)|0;
+        d[i+3] = (Math.random()*65+10)|0;
       }
       gctx.putImageData(img, 0, 0);
-      // VHS jitter bar
-      if (Math.random()<0.05) {
+      if (Math.random()<0.04) {
         const by=(Math.random()*h)|0;
-        gctx.fillStyle=`rgba(255,255,255,${(Math.random()*0.15).toFixed(2)})`;
-        gctx.fillRect(0,by,w,(Math.random()*5+1)|0);
+        gctx.fillStyle=`rgba(255,255,255,${(Math.random()*0.12).toFixed(2)})`;
+        gctx.fillRect(0, by, w, (Math.random()*4+1)|0);
       }
     }
 
     // ── timecode ──
-    if (!vid.paused && vid.currentTime>0) {
-      const d2=new Date();
+    if (!vid.paused && vid.currentTime > 0) {
+      const now = new Date();
       timecodeEl.textContent =
-        `REC ● ${d2.getFullYear()}.${String(d2.getMonth()+1).padStart(2,'0')}.${String(d2.getDate()).padStart(2,'0')} ${fmtTC(vid.currentTime)}`;
+        `REC ● ${now.getFullYear()}.` +
+        `${String(now.getMonth()+1).padStart(2,'0')}.` +
+        `${String(now.getDate()).padStart(2,'0')} ` +
+        fmtTC(vid.currentTime);
     } else {
-      timecodeEl.textContent='';
+      timecodeEl.textContent = '';
     }
 
     requestAnimationFrame(drawFrame);
   }
-  drawFrame();
+  requestAnimationFrame(drawFrame);
 
   function fmtTC(s) {
     const h=Math.floor(s/3600), m=Math.floor((s%3600)/60),
