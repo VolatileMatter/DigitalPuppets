@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>JaxCorp</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; background:#000; }
+
+    /* iframe fills everything */
+    #shell-frame {
+      width:100%; height:100%;
+      border:none; display:block;
+    }
+
+    /* ── XP LOADING OVERLAY ── */
+    #loading-overlay {
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.55);
+      z-index:9999;
+      align-items:center; justify-content:center;
+    }
+    #loading-overlay.active { display:flex; }
+
+    #loading-dialog {
+      width:380px;
+      background:#ece9d8;
+      border:2px solid #0a246a;
+      box-shadow:4px 4px 10px rgba(0,0,0,0.7);
+      font-family:'Tahoma',sans-serif;
+    }
+
+    /* XP titlebar */
+    #ld-titlebar {
+      background:linear-gradient(to bottom,#2462c8 0%,#1941a5 100%);
+      padding:4px 6px;
+      display:flex; align-items:center; gap:5px;
+    }
+    #ld-titlebar svg { flex-shrink:0; }
+    #ld-titlebar-text {
+      flex:1; font-size:12px; font-weight:bold; color:#fff;
+      text-shadow:1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .xp-chrome-btn {
+      width:21px; height:21px;
+      background:linear-gradient(to bottom,#f0c060,#d09020);
+      border:1px solid #806010; border-radius:3px;
+      font-size:11px; font-weight:bold; color:#000;
+      display:flex; align-items:center; justify-content:center;
+    }
+
+    /* body */
+    #ld-body {
+      padding:18px 20px 16px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    #ld-msg {
+      font-size:13px; color:#000; line-height:1.5;
+    }
+    #ld-sub {
+      font-size:11px; color:#444;
+    }
+
+    /* progress bar — XP chunky style */
+    #ld-progress-track {
+      width:100%; height:18px;
+      background:#fff;
+      border:2px inset #aaa;
+      position:relative; overflow:hidden;
+    }
+    #ld-progress-fill {
+      height:100%;
+      background:linear-gradient(to bottom,#3070d8 0%,#1850b8 50%,#3070d8 100%);
+      width:0%;
+      transition:width 0.25s ease;
+      /* XP segmented look */
+      background-image:repeating-linear-gradient(
+        to right,
+        rgba(255,255,255,0.15) 0px,
+        rgba(255,255,255,0.15) 10px,
+        transparent 10px,
+        transparent 14px
+      ),
+      linear-gradient(to bottom,#4a90e8,#1850b8);
+    }
+
+    #ld-status {
+      font-size:11px; color:#333;
+      font-family:'Courier New',monospace;
+      letter-spacing:0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <iframe id="shell-frame" src="login.html" allowfullscreen></iframe>
+
+  <!-- XP-style loading dialog, sits above the iframe -->
+  <div id="loading-overlay">
+    <div id="loading-dialog">
+      <div id="ld-titlebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="14" height="14" rx="2" fill="#1060c0"/>
+          <text x="4" y="12" font-size="10" font-family="Arial" font-weight="bold" fill="#fff">J</text>
+        </svg>
+        <div id="ld-titlebar-text">JaxCorp — Authenticating</div>
+        <div class="xp-chrome-btn">–</div>
+      </div>
+      <div id="ld-body">
+        <div id="ld-msg">
+          <strong>Authentication successful.</strong><br/>
+          Loading secure desktop environment. Please wait.
+        </div>
+        <div id="ld-progress-track">
+          <div id="ld-progress-fill"></div>
+        </div>
+        <div id="ld-status">Initializing session...</div>
+        <div id="ld-sub">JaxCorp Division 7 &nbsp;|&nbsp; Legacy Environment 2025 &nbsp;|&nbsp; 2025-12-31</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+<script>
+  const frame   = document.getElementById('shell-frame');
+  const overlay = document.getElementById('loading-overlay');
+  const fill    = document.getElementById('ld-progress-fill');
+  const status  = document.getElementById('ld-status');
+
+  const STATUS_MSGS = [
+    'Verifying credentials...',
+    'Loading user profile...',
+    'Mounting secure drives...',
+    'Starting LIMS services...',
+    'Initializing biotrack modules...',
+    'Applying security policy...',
+    'Loading desktop environment...',
+    'Ready.',
+  ];
+
+  // Listen for the login success message from the iframe
+  window.addEventListener('message', e => {
+    if (e.data === 'jax-login-success') {
+      startLoading();
+    }
+  });
+
+  function startLoading() {
+    overlay.classList.add('active');
+
+    // Animate the progress bar through the status messages
+    let step = 0;
+    const total = STATUS_MSGS.length;
+    const interval = setInterval(() => {
+      step++;
+      const pct = Math.round((step / total) * 100);
+      fill.style.width = pct + '%';
+      status.textContent = STATUS_MSGS[Math.min(step, total - 1)];
+
+      if (step >= total) {
+        clearInterval(interval);
+        // Brief pause on "Ready." then swap to desktop
+        setTimeout(() => {
+          frame.src = 'desktop.html';
+          // Hide overlay once desktop iframe has loaded
+          frame.onload = () => {
+            overlay.classList.remove('active');
+            frame.onload = null;
+          };
+          // Fallback: hide after 3s regardless
+          setTimeout(() => overlay.classList.remove('active'), 3000);
+        }, 400);
+      }
+    }, 280);
+  }
+
+  // F key fullscreen (frame.html is the persistent document)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'f' && e.key !== 'F') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+</script>
+</html>

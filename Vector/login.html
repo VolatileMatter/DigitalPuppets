@@ -283,7 +283,13 @@
       document.getElementById('error-msg').textContent = '> ERROR: Password field is empty.';
       return;
     }
-    window.location.href = 'desktop.html';
+    // If inside frame.html, signal the parent to handle the transition
+    if (window.parent !== window) {
+      window.parent.postMessage('jax-login-success', '*');
+    } else {
+      // Fallback: direct navigation if opened standalone
+      window.location.href = 'desktop.html';
+    }
   }
 </script>
 </body>
