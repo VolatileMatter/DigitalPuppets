@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Greenscreen</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width:100%; height:100%;
+      background: #00b140;
+      overflow:hidden;
+    }
+  </style>
+</head>
+<body>
+<script>
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'f' && e.key !== 'F') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+</script>
+</body>
+</html>
